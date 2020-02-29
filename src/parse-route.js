@@ -17,23 +17,23 @@ function base64Image(src) {
 
 
 module.exports = async (req, res, next) => {
-    let resultJson;
-    const image = __dirname + '../uploads/image2.jpg';
-    resultJson = require('../tests/json/test3');
+    // let resultJson;
+    // const image = __dirname + '../uploads/image2.jpg';
+    // resultJson = require('../tests/json/test3');
 
-    // const image = req.file.path;
-    // try {
-    //      const processor = new GoogleProcessor();
-    //      resultJson = await processor.parseImage(image);
-    //      fs.writeFileSync(
-    //          __dirname + '/test3.json',
-    //          JSON.stringify(resultJson)
-    //      );
-    //  } catch (err) {
-    //      console.error(err);
-    //      res.end('Cloud Vision Error: ' + err.toString());
-    //      return;
-    //  }
+    const image = req.file.path;
+    try {
+         const processor = new GoogleProcessor();
+         resultJson = await processor.parseImage(image);
+         // fs.writeFileSync(
+         //     __dirname + '/test3.json',
+         //     JSON.stringify(resultJson)
+         // );
+     } catch (err) {
+         console.error(err);
+         res.end('Cloud Vision Error: ' + err.toString());
+         return;
+     }
 
 
     const lineProcessor = new LineProcessor();

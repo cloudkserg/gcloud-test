@@ -24,7 +24,7 @@ app.get('/', function (req, res) {
 });
 app.post('/upload', upload.single('image'), parseRoute);
 
-app.listen(8080);;
-console.log('Server Started on port 8080');
+app.listen(8089);;
+console.log('Server Started on port 8089');
 
 

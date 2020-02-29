@@ -101,9 +101,9 @@ module.exports = class LineProcessor {
                   let prevSymbol = null;
                   word.symbols.forEach(symbol => {
                       const vertice = symbol.boundingBox.vertices[3];
-                      if (vertice.y < 883) {
-                          return;
-                      }
+                      // if (vertice.y < 883) {
+                      //     return;
+                      // }
                       if (prevSymbol && prevSymbol.boundingBox.vertices[3].y != vertice.y) {
                           this.finishCurrentLine(prevSymbol);
                       }
