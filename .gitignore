@@ -40,4 +40,3 @@ database_files/sqitch.conf
 
 # Scratch Folder for Tests
 tests/scratch
-package.json
