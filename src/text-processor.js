@@ -124,10 +124,12 @@ module.exports =  class TextProcessor {
     }
 
     isStartNumber(line, x) {
-        if (!this.isCLosedToPreviousSymbol(line, x)) {
-            return true;
+        if (this.isCLosedToPreviousSymbol(line, x)) {
+            return false;
         }
 
+        //not isClosedToPrevious
+        return true;
         const prevChar = this.getPrevXChar(line, x);
         const isSign = prevChar == '.' || prevChar == ',';
         if (isSign) {
@@ -136,7 +138,7 @@ module.exports =  class TextProcessor {
         return isNaN(parseInt(prevChar));
     }
 
-    getPriceFromPosition (line, x) {
+    getPriceFromPosition (line, x, toFloat = true) {
         let nearestX = this.findNearestX(line, x);
         const char = line[nearestX];
         if (isNaN(parseInt(char))) {
@@ -148,29 +150,44 @@ module.exports =  class TextProcessor {
 
         let price = char;
         let currentX = this.getNextX(line, nearestX);
-        if (!currentX) {
+        if (!currentX || isNaN(parseInt(currentX))) {
             return price;
         }
         currentX = currentX.toString();
 
         let isEndPrice = false;
+        let priceHasPoint = false;
 
         while(!isEndPrice) {
+            if (!currentX) {
+                break;
+            }
             const nextChar = line[currentX];
-
-            if (nextChar === null || nextChar == ' ' || !this.isCLosedToPreviousSymbol(line, currentX)) {
+            if (nextChar === null) {
                 isEndPrice = true;
-            } else {
-                if (nextChar === '.' || nextChar == ',') {
-                    price += '.';
-                } else if (!isNaN(parseInt(nextChar))) {
-                    price += nextChar;
+                break;
+            }
+
+            if (nextChar == ' ' || !this.isCLosedToPreviousSymbol(line, currentX)) {
+                if (priceHasPoint) {
+                    isEndPrice = true;
+                    break;
+                } else if (nextChar == ' ') {
+                    currentX = this.getNextX(line, currentX);
+                    continue;
                 }
+            }
+
+            if (nextChar === '.' || nextChar == ',') {
+                priceHasPoint = true;
+                price += '.';
+            } else if (!isNaN(parseInt(nextChar))) {
+                price += nextChar;
             }
             currentX = this.getNextX(line, currentX);
         }
 
-        return parseFloat(price);
+        return toFloat ? parseFloat(price) : price;
     }
 
     nextLineHasStartPriceOnPosition (nextLine, startPricePosition) {
@@ -190,10 +207,6 @@ module.exports =  class TextProcessor {
         if (!nextLine) {
             return [];
         }
-
-
-
-
 
         const pricePositions = [];
         let inMediumPrice = false;
@@ -418,7 +431,7 @@ module.exports =  class TextProcessor {
     }
 
     //price need has . or , in medium
-    getPriceFromLine(line) {
+    getTotalPriceFromLine(y) {
         const elements = line.split('');
         let maxPrice = null;
         let prevStartPricePart = null;
@@ -442,9 +455,9 @@ module.exports =  class TextProcessor {
         for (const y of Object.keys(this.lines)) {
             const line = this.lines[y];
             if (this.hasTotalWord(line)) {
-                const checkTotalPrice = this.getPriceFromLine(line);
-                if (checkTotalPrice) {
-                    totalPrice = checkTotalPrice;
+                const pricePositions = this.getPricePositionsForLine(y, true);
+                if (pricePositions.length > 0) {
+                    totalPrice = pricePositions[0].price;
                     this.totalY = y;
                 }
             }
@@ -480,26 +493,30 @@ module.exports =  class TextProcessor {
         }
     }
 
-    getSumNumberForPosition (numberPosition, currentY) {
+    moreThanTotalY (y) {
+        return this.totalY && parseInt(y) >= parseInt(this.totalY)
+    }
+
+     getSumNumberForPosition (numberPosition, currentY, asTotal) {
         let sumPrice = 0;
         let tryItemsInPrice = 0;
         let lastSavedYIndex = null;
         let currencyYIndex = 0;
         const newLineSymbols = this.lineSymbols;
+        const priceMatch = /^\d+\.\d+$/i;
         for (const y in newLineSymbols) {
-            if (parseInt(y) >= parseInt(this.totalY)) {
+            //skip after totalY
+            if (this.moreThanTotalY(y)) {
                 break;
+            }
+            if (asTotal && y !== currentY) {
+                continue;
             }
             //начинаем считать с текущей строчки
             currencyYIndex++;
             //skip before currentY
             if (y < currentY) {
                 continue;
-            }
-
-            //skip after totalY
-            if (y >= this.totalY) {
-                break;
             }
 
             //если разница между последним сохраненным и текущим больше двух строк -- заканчиваем
@@ -509,7 +526,13 @@ module.exports =  class TextProcessor {
 
 
             const line = this.lineSymbols[y];
-            const priceStr = this.getPriceFromPosition(line, numberPosition);
+            const priceStr = this.getPriceFromPosition(line, numberPosition, false);
+            if (!priceStr) {
+                continue;
+            }
+            if (priceStr.match(priceMatch) === null) {
+                continue;
+            }
             const price = parseFloat(priceStr);
             if (price && price > 0) {
                 sumPrice += price;
@@ -544,6 +567,24 @@ module.exports =  class TextProcessor {
         };
     }
 
+    getPricePositionsForLine(y, asTotal = false) {
+        const line = this.lineSymbols[y];
+        const numberPositions = this.calculatePricePositions(line, y);
+        const pricePositions = [];
+        for (const numberPosition of numberPositions) {
+            const {price, priceItems: tryItemsInPrice, endY: tryEndY} = this.getSumNumberForPosition(numberPosition, y, asTotal);
+            const pricePosition = {
+                startY: y,
+                endY: tryEndY,
+                price,
+                priceItems: tryItemsInPrice,
+                pricePosition: numberPosition
+            };
+            pricePositions.push(pricePosition);
+        }
+        return pricePositions;
+    }
+
 
     getPricePosition (totalPrice) {
         const skippedPositions = [];
@@ -563,26 +604,23 @@ module.exports =  class TextProcessor {
             if (parseInt(y) >= parseInt(this.totalY)) {
                 break;
             }
-            const line = this.lineSymbols[y];
-            const numberPositions = this.calculatePricePositions(line, y);
-            for (const numberPosition of numberPositions) {
-                // if (skippedPositions.includes(numberPosition)) {
-                //     continue;
-                // }
-                const {price, priceItems: tryItemsInPrice, endY: tryEndY} = this.getSumNumberForPosition(numberPosition, y);
-                if (price == totalPrice && tryItemsInPrice > totalPriceCalculation.priceItems) {
-                    totalPriceCalculation.priceItems = tryItemsInPrice;
+            const pricePositions = this.getPricePositionsForLine(y)
+            for (const pricePosition of pricePositions) {
+
+                const numberPosition = pricePosition.pricePosition;
+                if (pricePosition.price == totalPrice && pricePosition.priceItems > totalPriceCalculation.priceItems) {
+                    totalPriceCalculation.priceItems = pricePosition.priceItems;
                     totalPriceCalculation.pricePosition = numberPosition;
-                    totalPriceCalculation.startY = y;
-                    totalPriceCalculation.price = price;
-                    totalPriceCalculation.endY = tryEndY;
-                } else if (!priceCalculations[numberPosition] || tryItemsInPrice > priceCalculations[numberPosition].priceItems) {
+                    totalPriceCalculation.startY = pricePosition.startY;
+                    totalPriceCalculation.price = pricePosition.price;
+                    totalPriceCalculation.endY = pricePosition.endY;
+                } else if (!priceCalculations[numberPosition] || pricePosition.priceItems > priceCalculations[numberPosition].priceItems) {
                     priceCalculations[numberPosition] = {
-                        priceItems: tryItemsInPrice,
-                        pricePosition: numberPosition,
-                        startY: y,
-                        price,
-                        endY: tryEndY
+                        priceItems: pricePosition.priceItems,
+                        ['pricePosition']: numberPosition,
+                        startY: pricePosition.startY,
+                        price: pricePosition.price,
+                        endY:pricePosition.endY
                     };
                 }
                 skippedPositions.push(numberPosition);

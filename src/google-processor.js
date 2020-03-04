@@ -18,7 +18,7 @@ module.exports = class GoogleProcessor {
             client.textDetection(image, function (err, result) {
                 if (err) {
                     console.error(err);
-                    return err(err);
+                    throw new Error(err);
                 }
                 return res(result);
             });

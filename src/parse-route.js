@@ -17,7 +17,7 @@ function base64Image(src) {
 
 
 module.exports = async (req, res, next) => {
-    // let resultJson;
+    let resultJson;
     // const image = __dirname + '../uploads/image2.jpg';
     // resultJson = require('../tests/json/test3');
 
