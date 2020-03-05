@@ -32,7 +32,9 @@ module.exports =  class TextProcessor {
         return _.chain(diffs)
             .map(diff => [+x+diff])
             .flatten()
-            .find(diff => !!line[diff])
+            .filter(diff => !!line[diff])
+            .map(diff => parseInt(diff))
+            .max()
             .value();
     }
 
@@ -124,18 +126,19 @@ module.exports =  class TextProcessor {
     }
 
     isStartNumber(line, x) {
-        if (this.isCLosedToPreviousSymbol(line, x)) {
+        const prevChar = this.getPrevXChar(line, x);
+        if (this.isCLosedToPreviousSymbol(line, x) && !isNaN(parseInt(prevChar))) {
             return false;
         }
 
         //not isClosedToPrevious
         return true;
-        const prevChar = this.getPrevXChar(line, x);
-        const isSign = prevChar == '.' || prevChar == ',';
-        if (isSign) {
-             return this.isStartNumber(line, this.getPrevX(line, x));
-        }
-        return isNaN(parseInt(prevChar));
+        // const prevChar = this.getPrevXChar(line, x);
+        // const isSign = prevChar == '.' || prevChar == ',';
+        // if (isSign) {
+        //      return this.isStartNumber(line, this.getPrevX(line, x));
+        // }
+        // return isNaN(parseInt(prevChar));
     }
 
     getPriceFromPosition (line, x, toFloat = true) {
@@ -150,10 +153,9 @@ module.exports =  class TextProcessor {
 
         let price = char;
         let currentX = this.getNextX(line, nearestX);
-        if (!currentX || isNaN(parseInt(currentX))) {
+        if (!currentX || isNaN(parseInt(price))) {
             return price;
         }
-        currentX = currentX.toString();
 
         let isEndPrice = false;
         let priceHasPoint = false;
@@ -168,7 +170,8 @@ module.exports =  class TextProcessor {
                 break;
             }
 
-            if (nextChar == ' ' || !this.isCLosedToPreviousSymbol(line, currentX)) {
+            if (nextChar == ' ') {
+                //) {
                 if (priceHasPoint) {
                     isEndPrice = true;
                     break;
@@ -176,6 +179,11 @@ module.exports =  class TextProcessor {
                     currentX = this.getNextX(line, currentX);
                     continue;
                 }
+            }
+
+            if (!this.isCLosedToPreviousSymbol(line, currentX) && this.isPrice(price)) {
+                isEndPrice = true;
+                break;
             }
 
             if (nextChar === '.' || nextChar == ',') {
@@ -203,44 +211,51 @@ module.exports =  class TextProcessor {
     }
 
     calculatePricePositions(line, y) {
-        const nextLine = this.getNextLine(y);
-        if (!nextLine) {
-            return [];
-        }
-
         const pricePositions = [];
-        let inMediumPrice = false;
+        let currentPrice = null;
+        let currentNumberPosition = null;
         for (const x in line) {
             const curChar = line[x];
-            if (curChar == ' ') {
-                inMediumPrice = false;
+            const isDigit = !isNaN(parseInt(curChar));
+            const isPoint = curChar === '.' || curChar === ',';
+            const isSpace = curChar === ' ';
+            const isChar = !isDigit && !isPoint && !isSpace;
+            if (!this.isCLosedToPreviousSymbol(line, x) && this.isPrice(currentPrice)) {
+                pricePositions.push(currentNumberPosition);
+                currentNumberPosition = null;
+            }
+            if (isChar) {
+                if (currentNumberPosition && this.isPrice(currentPrice)) {
+                    pricePositions.push(currentNumberPosition);
+                }
+                currentNumberPosition = null;
+                currentPrice = null;
                 continue;
             }
-
-            if (!this.isCLosedToPreviousSymbol(line, x)) {
-                inMediumPrice = false;
-            }
-
-            if (inMediumPrice) {
-                continue;
-            }
-
-            const price = this.getPriceFromPosition(line, x);
-            if (isNaN(price)) {
-                inMediumPrice = false;
-                continue;
-            }
-
-            inMediumPrice = true;
-            const startPricePosition = x;
-            if (this.nextLineHasStartPriceOnPosition(nextLine, startPricePosition)) {
-                pricePositions.push(startPricePosition);
-            } else {
-                const secondNextLine = this.getSecondNextLine(y);
-                if (secondNextLine && this.nextLineHasStartPriceOnPosition(secondNextLine, startPricePosition)) {
-                    pricePositions.push(startPricePosition);
+            if (isDigit) {
+                if (!currentNumberPosition) {
+                    currentNumberPosition = x;
+                    currentPrice = curChar;
+                    continue;
+                } else {
+                    currentPrice += curChar;
+                    continue;
                 }
             }
+            if (isSpace) {
+                continue;
+            }
+            if (isPoint) {
+                if (!currentNumberPosition) {
+                    continue;
+                } else {
+                    currentPrice += '.';
+                    continue;
+                }
+            }
+        }
+        if (currentNumberPosition && this.isPrice(currentPrice)) {
+            pricePositions.push(currentNumberPosition);
         }
         return pricePositions;
     }
@@ -258,16 +273,25 @@ module.exports =  class TextProcessor {
         return result;
     }
 
-    calculatePositions(line, y) {
+    calculatePositions(line, y, asTotal = false) {
 
         const nextLine = this.getNextLine(y);
         if (!nextLine) {
             return null;
         }
 
-        const pricePositions = this.calculatePricePositions(line, y);
+        let pricePositions = this.calculatePricePositions(line, y);
         if (pricePositions.length === 0) {
             return null;
+        }
+        if (!asTotal) {
+            const nextLine = this.getNextLine(y);
+            if (!nextLine) {
+                return null;
+            }
+            pricePositions = pricePositions.filter(
+                pricePosition => this.nextLineHasStartPriceOnPosition(nextLine, pricePosition)
+            );
         }
 
 
@@ -387,9 +411,25 @@ module.exports =  class TextProcessor {
         return price[price.length - 1] === '.';
     }
 
+    isPrice(priceStr) {
+        if (!priceStr) {
+            return false;
+        }
+        const price = parseFloat(priceStr);
+        if (isNaN(price)) {
+            return false;
+        }
+        return this.hasPointInMedium(priceStr) && this.hasTwoDigitsAfter(priceStr);
+    }
+
+    hasTwoDigitsAfter(priceStr) {
+        const priceAfter = priceStr.split('.');
+        return priceAfter[1].length == 2;
+    }
+
     hasPointInMedium(price) {
         const pointPosition = price.indexOf('.');
-        return pointPosition !== -1 || pointPosition !== 0 || pointPosition !== (price.length - 1);
+        return pointPosition !== -1 && pointPosition !== 0 && pointPosition !== (price.length - 1);
     }
 
     getPriceFromElement(el, startPricePart) {
@@ -457,7 +497,7 @@ module.exports =  class TextProcessor {
             if (this.hasTotalWord(line)) {
                 const pricePositions = this.getPricePositionsForLine(y, true);
                 if (pricePositions.length > 0) {
-                    totalPrice = pricePositions[0].price;
+                    totalPrice = pricePositions[pricePositions.length - 1].price;
                     this.totalY = y;
                 }
             }
@@ -506,10 +546,9 @@ module.exports =  class TextProcessor {
         const priceMatch = /^\d+\.\d+$/i;
         for (const y in newLineSymbols) {
             //skip after totalY
-            if (this.moreThanTotalY(y)) {
+            if (!asTotal && this.moreThanTotalY(y)) {
                 break;
-            }
-            if (asTotal && y !== currentY) {
+            } else if (asTotal && y !== currentY) {
                 continue;
             }
             //начинаем считать с текущей строчки
@@ -604,11 +643,17 @@ module.exports =  class TextProcessor {
             if (parseInt(y) >= parseInt(this.totalY)) {
                 break;
             }
-            const pricePositions = this.getPricePositionsForLine(y)
-            for (const pricePosition of pricePositions) {
-
+            if (y < 622) {
+                continue;
+            }
+            const pricePositions = this.getPricePositionsForLine(y);
+            if (pricePositions.length == 0) {
+                continue;
+            }
+            // for (const pricePosition of pricePositions) {
+                const pricePosition = pricePositions[pricePositions.length - 1];
                 const numberPosition = pricePosition.pricePosition;
-                if (pricePosition.price == totalPrice && pricePosition.priceItems > totalPriceCalculation.priceItems) {
+                if (pricePosition.price == totalPrice && pricePosition.priceItems > totalPriceCalculation.priceItems && pricePosition.priceItems > 1) {
                     totalPriceCalculation.priceItems = pricePosition.priceItems;
                     totalPriceCalculation.pricePosition = numberPosition;
                     totalPriceCalculation.startY = pricePosition.startY;
@@ -623,8 +668,8 @@ module.exports =  class TextProcessor {
                         endY:pricePosition.endY
                     };
                 }
-                skippedPositions.push(numberPosition);
-            }
+                // skippedPositions.push(numberPosition);
+            // }
         }
 
         const maxPriceCalculation = this.getMaxPriceCalculationsByPriceItemsAndPrice(priceCalculations);
