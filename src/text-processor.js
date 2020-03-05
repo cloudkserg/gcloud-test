@@ -172,13 +172,10 @@ module.exports =  class TextProcessor {
 
             if (nextChar == ' ') {
                 //) {
-                if (priceHasPoint) {
-                    isEndPrice = true;
-                    break;
-                } else if (nextChar == ' ') {
+                // if (nextChar == ' ') {
                     currentX = this.getNextX(line, currentX);
                     continue;
-                }
+                // }
             }
 
             if (!this.isCLosedToPreviousSymbol(line, currentX) && this.isPrice(price)) {
