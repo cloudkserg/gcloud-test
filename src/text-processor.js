@@ -17,8 +17,7 @@ module.exports =  class TextProcessor {
         this.savePositionOnY = 0;
     }
 
-
-    findNearestX (line, x) {
+    findExistedX (line, x) {
         const diffs = _.range(0, MAX_DIFFS_IN_X);
         const prevX = _.chain(diffs)
             .map(diff => [+x-diff])
@@ -36,6 +35,16 @@ module.exports =  class TextProcessor {
             .map(diff => parseInt(diff))
             .max()
             .value();
+    }
+
+
+    findNearestX (line, x) {
+        const existedX = this.findExistedX(line, x);
+        if (this.isCLosedToPreviousSymbol(line, existedX)) {
+            const prevX = this.getPrevX(line, existedX);
+            return this.findNearestX(line, prevX);
+        }
+        return existedX;
     }
 
     isSpaceOnPosition(line, x) {
@@ -542,24 +551,25 @@ module.exports =  class TextProcessor {
         const newLineSymbols = this.lineSymbols;
         const priceMatch = /^\d+\.\d+$/i;
         for (const y in newLineSymbols) {
-            //skip after totalY
-            if (!asTotal && this.moreThanTotalY(y)) {
-                break;
-            } else if (asTotal && y !== currentY) {
-                continue;
-            }
             //начинаем считать с текущей строчки
             currencyYIndex++;
             //skip before currentY
             if (y < currentY) {
                 continue;
             }
+            //skip after totalY
+            if (!asTotal && this.moreThanTotalY(y)) {
+                break;
+            //skip for total all except current
+            } else if (asTotal && y !== currentY) {
+                continue;
+            }
+
 
             //если разница между последним сохраненным и текущим больше двух строк -- заканчиваем
             if (lastSavedYIndex && currencyYIndex - lastSavedYIndex > 2) {
                 break;
             }
-
 
             const line = this.lineSymbols[y];
             const priceStr = this.getPriceFromPosition(line, numberPosition, false);
@@ -640,9 +650,10 @@ module.exports =  class TextProcessor {
             if (parseInt(y) >= parseInt(this.totalY)) {
                 break;
             }
-            if (y < 622) {
-                continue;
-            }
+            //todo: deleted
+            // if (y < 622) {
+            //     continue;
+            // }
             const pricePositions = this.getPricePositionsForLine(y);
             if (pricePositions.length == 0) {
                 continue;
@@ -671,7 +682,7 @@ module.exports =  class TextProcessor {
 
         const maxPriceCalculation = this.getMaxPriceCalculationsByPriceItemsAndPrice(priceCalculations);
         const priceItems = maxPriceCalculation ? maxPriceCalculation.priceItems : 0;
-        if (totalPriceCalculation.priceItems >= priceItems) {
+        if (totalPriceCalculation.priceItems >= 0) {
             return this.getPositionsFromCalculation(totalPriceCalculation, priceCalculations);
         }
 
