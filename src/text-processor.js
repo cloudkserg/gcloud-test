@@ -581,7 +581,7 @@ module.exports =  class TextProcessor {
             }
             const price = parseFloat(priceStr);
             if (price && price > 0) {
-                sumPrice += price;
+                sumPrice = +(sumPrice + price).toFixed(12)
                 tryItemsInPrice++;
                 lastSavedYIndex = currencyYIndex;
             }
