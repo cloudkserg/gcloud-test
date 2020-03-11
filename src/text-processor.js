@@ -23,9 +23,11 @@ module.exports =  class TextProcessor {
             return MAX_DIFFS_IN_X;
         }
         const line = this.lineSymbols[y];
-        const prevX = this.getPrevX(line, x);
-        if (prevX) {
-            return this.widths[y][prevX] + DIFFS_IN_X;
+        if (x) {
+            const prevX = this.getPrevX(line, x);
+            if (prevX) {
+                return this.widths[y][prevX] + DIFFS_IN_X;
+            }
         }
         const maxWidth = _.max(Object.values(this.widths[y]));
         return maxWidth + DIFFS_IN_X;
@@ -529,7 +531,7 @@ module.exports =  class TextProcessor {
 
     minimizeXTo (line, minX, y) {
         const newLine = {};
-        const diffX = this.getMaxDiffForY(y, x) + 1;
+        const diffX = this.getMaxDiffForY(y, null) + 1;
         let prevX = 0;
         for (const x in line) {
             if (x >= (minX - diffX)) {
