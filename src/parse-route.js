@@ -38,9 +38,10 @@ module.exports = async (req, res, next) => {
 
     const lineProcessor = new LineProcessor();
     const lines = lineProcessor.getLines(resultJson);
+    const widhts = lineProcessor.getWidths();
     const lineSymbols = lineProcessor.lineSymbols;
 
-    const textProcessor = new TextProcessor(lineSymbols, lines);
+    const textProcessor = new TextProcessor(lineSymbols, lines, widhts);
     const text = textProcessor.processText();
     const result = {path: image, rows: text.items, totalPrice: text.totalPrice, lines};
     res.json(result);

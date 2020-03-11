@@ -653,9 +653,9 @@ module.exports =  class TextProcessor {
                 break;
             }
             //todo: deleted
-            if (y < 517) {
-                continue;
-            }
+            // if (y < 517) {
+            //     continue;
+            // }
             const pricePositions = this.getPricePositionsForLine(y);
             if (pricePositions.length == 0) {
                 continue;
