@@ -7,6 +7,8 @@ new Vue({
         totalPrice: null,
         image: null,
         imageUrl: null,
+        debug: [],
+        lines: [],
         serverError: null,
         error: '',
         //По умолчанию ищем путь из точки с ноль, ноль
@@ -38,6 +40,8 @@ new Vue({
                 }
                 this.rows = res.data.rows;
                 this.totalPrice = res.data.totalPrice;
+                this.lines = res.data.lines;
+                this.debug = res.data.debug;
             })
             .catch((res) => {
                 this.serverError = res;

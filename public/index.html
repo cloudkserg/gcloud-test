@@ -72,7 +72,31 @@
             <h2>Total price: {{totalPrice}}</h2>
         </div>
     </div>
-
+    <div class="row">
+        <div class="col-md-4">
+            <h2>LINES</h2>
+        </div>
+        <table  class="table table-striped table-bordered">
+            <tr v-for="line of lines">
+                <td>{{line}}</td>
+            </tr>
+        </table>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <h2>DEBUG</h2>
+        </div>
+        <table  class="table table-striped table-bordered">
+            <thead>
+                <th>y</th>
+                <th>symbol</th>
+            </thead>
+            <tr v-for="(lines, y) in debug">
+                <td>{{y}}</td>
+                <td>{{lines.join(';')}}</td>
+            </tr>
+        </table>
+    </div>
 
     <div class="row">
         <div class="col-md-2 offset-md-3">
