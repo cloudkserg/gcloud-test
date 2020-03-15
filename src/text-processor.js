@@ -194,16 +194,26 @@ module.exports =  class TextProcessor {
             }
 
             if (!this.isCLosedToPreviousSymbol(line, currentX, y)) {
-                break;
+                if (!priceHasPoint) {
+                    break;
+                }
             }
 
             if (nextChar === '.' || nextChar == ',') {
                 priceHasPoint = true;
                 price += '.';
+            } else if (nextChar == ' ') {
+                currentX = this.getNextX(line, currentX);
+                continue;
             } else if (isNaN(parseInt(nextChar))) {
                 break;
             } else if (!isNaN(parseInt(nextChar))) {
                 price += nextChar;
+            }
+
+            const nextX = this.getNextX(line, currentX);
+            if (this.hasTwoDigitsAfter(price) && !this.isCLosedToPreviousSymbol(line, nextX, y))  {
+                break;
             }
 
             currentX = this.getNextX(line, currentX);
@@ -261,6 +271,12 @@ module.exports =  class TextProcessor {
                 }
             }
             if (isSpace) {
+                if (this.isPrice(currentPrice)) {
+                    pricePositions.push(currentNumberPosition);
+                    currentNumberPosition = null;
+                    currentPrice = null;
+                    continue;
+                }
                 continue;
             }
             if (isPoint) {
@@ -418,6 +434,7 @@ module.exports =  class TextProcessor {
             'Sunne',
             'Итого',
             'Всего',
+            'Bcero',
             'Сумма'
         ];
         return _.some(totalWords, totalWord => {
@@ -445,7 +462,7 @@ module.exports =  class TextProcessor {
 
     hasTwoDigitsAfter(priceStr) {
         const priceAfter = priceStr.split('.');
-        return priceAfter[1].length == 2;
+        return priceAfter && priceAfter.length > 1 && priceAfter[1].length == 2;
     }
 
     hasPointInMedium(price) {
@@ -650,7 +667,7 @@ module.exports =  class TextProcessor {
         // };
 
         for (const y in this.lineSymbols) {
-        // const y = '566';
+        // const y = '985';
             if (parseInt(y) >= parseInt(this.totalY)) {
                 break;
             }
@@ -804,15 +821,24 @@ module.exports =  class TextProcessor {
         this.processY = null;
         for (const y in this.lineSymbols) {
             this.processY = y;
-            if (y < startY || y > endY) {
+            // if (y < startY || y > endY) {
+            //     continue;
+            // }
+            // if (y > this.totalY) {
+            //     continue;
+            // }
+            if (parseInt(y) >= this.totalY) {
                 continue;
             }
             const line = this.lineSymbols[y];
 
+            if (y  == '977') {
+                const a = 'g';
+            }
             const price = this.getPriceFromPosition(line, pricePosition, y);
             if (!price) {
                 // если разница между текущей строчкой и предудущей строкой = 1 - соединяем их
-                this.joinCurrentRowWithNext(y);
+                // this.joinCurrentRowWithNext(y);
                 continue;
             }
 

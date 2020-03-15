@@ -1,6 +1,6 @@
 const _ = require('lodash');
 
-const MAX_DIFF_NEAREST_Y = 9;
+const MAX_DIFF_NEAREST_Y = 5;
 const SPACE_SYMBOL = 'SPACE';
 module.exports = class LineProcessor {
 
@@ -10,6 +10,7 @@ module.exports = class LineProcessor {
         this.currentWidths = {};
         this.lineSymbols = {};
         this.startYs = {};
+        this.debug = {};
         this.widths = {};
     }
 
@@ -84,16 +85,24 @@ module.exports = class LineProcessor {
         return null;
     }
 
-    findNearestY (startY, endY, width) {
-        const existedYWithMinDiff = this.findExistedYWithMinDiff(endY, endY - startY);
-        if (existedYWithMinDiff) {
-            return existedYWithMinDiff;
+    findYWithDiff(startY, endY) {
+        for (let prevEndY in this.startYs) {
+            let prevStartY = this.startYs[prevEndY];
+            if (startY <= prevEndY &&  endY >= prevStartY && prevEndY - endY > MAX_DIFF_NEAREST_Y) {
+                return prevEndY;
+            }
         }
-        const existedYByStartYsWithMinDiff = this.findExistedEndYByStartYsWithMinDiff(startY);
-        if (existedYByStartYsWithMinDiff) {
-            return existedYByStartYsWithMinDiff;
-        }
+        return null;
+    }
 
+    findNearestY (startY, endY, width) {
+        // if (endY == 977) {
+        //     const a = 2;
+        // }
+        const yWithDiff = this.findYWithDiff(startY, endY);
+        if (yWithDiff) {
+            return yWithDiff;
+        }
         const nextEndY = this.findNextYThatClosedToThisY(endY);
         if (nextEndY) {
             return nextEndY;
@@ -103,6 +112,17 @@ module.exports = class LineProcessor {
         if (prevEndY) {
             return prevEndY;
         }
+
+        const existedYWithMinDiff = this.findExistedYWithMinDiff(endY, endY - startY);
+        if (existedYWithMinDiff) {
+            return existedYWithMinDiff;
+        }
+        const existedYByStartYsWithMinDiff = this.findExistedEndYByStartYsWithMinDiff(startY);
+        if (existedYByStartYsWithMinDiff) {
+            return existedYByStartYsWithMinDiff;
+        }
+
+
         return null;
     }
 
@@ -132,7 +152,7 @@ module.exports = class LineProcessor {
     }
 
     saveNewCurrentLine(symbol, currentSymbols) {
-        const vertice = symbol.boundingBox.vertices[3];
+        const vertice = symbol.boundingBox.vertices[2];
         const endY = vertice.y;
         this.lineSymbols[endY] = currentSymbols;
 
@@ -190,7 +210,7 @@ module.exports = class LineProcessor {
     }
 
     updateCurrentLine (symbol, nearestLine, findedY) {
-        const vertice = symbol.boundingBox.vertices[3];
+        const vertice = symbol.boundingBox.vertices[2];
         const endY = vertice.y;
         const verticeStart = symbol.boundingBox.vertices[0];
         const startY = verticeStart.y;
@@ -200,13 +220,23 @@ module.exports = class LineProcessor {
         return newEndY;
     }
 
+    addDebug(symbol) {
+        const verticeStart = symbol.boundingBox.vertices[0];
+        const vertice = symbol.boundingBox.vertices[2];
+        if (!this.debug[verticeStart.y]) {
+            this.debug[verticeStart.y] = [];
+        }
+        this.debug[verticeStart.y].push(symbol.text + ' - ' + verticeStart.y + '->' + vertice.y);
+    }
+
     finishCurrentLine (symbol) {
-        const vertice = symbol.boundingBox.vertices[3];
+        const vertice = symbol.boundingBox.vertices[2];
         const endY = vertice.y;
         const verticeStart = symbol.boundingBox.vertices[0];
         const startY = verticeStart.y;
 
         const findedY = this.findNearestY(startY, endY, this.getWidth(symbol));
+        this.addDebug(symbol);
         if (findedY) {
             let nearestLine = this.lineSymbols[findedY];
             let nearestWidths = this.widths[findedY];
@@ -226,9 +256,10 @@ module.exports = class LineProcessor {
     }
 
     parseBreakSymbol(symbol) {
-        const endX = symbol.boundingBox.vertices[3].x
+        const endX = symbol.boundingBox.vertices[2].x
         const SYMBOL_TYPES = {
             [`${SPACE_SYMBOL}`]: (symbol) => {
+                this.addSymbolToCurrentSymbols(symbol, endX);
                 const newSymbol = symbol;
                 newSymbol.text = ' ';
                 this.addSymbolToCurrentSymbols(newSymbol, endX)
@@ -240,7 +271,10 @@ module.exports = class LineProcessor {
                 this.addSymbolToCurrentSymbols(newSymbol, endX)
                 this.finishCurrentLine(symbol);
             },
-            'LINE_BREAK': (symbol) => this.finishCurrentLine(symbol)
+            'LINE_BREAK': (symbol) => {
+                this.addSymbolToCurrentSymbols(symbol, endX);
+                this.finishCurrentLine(symbol);
+            }
         };
 
         const detectedBreak = symbol.property.detectedBreak.type;
@@ -271,7 +305,7 @@ module.exports = class LineProcessor {
     }
 
     endY(symbol) {
-        return symbol.boundingBox.vertices[3].y
+        return symbol.boundingBox.vertices[2].y
     }
 
 
@@ -282,10 +316,10 @@ module.exports = class LineProcessor {
               paragraph.words.forEach(word => {
                   let prevSymbol = null;
                   word.symbols.forEach(symbol => {
-                      const vertice = symbol.boundingBox.vertices[3];
+                      const vertice = symbol.boundingBox.vertices[2];
                       const endY = vertice.y;
                       const endX = vertice.x;
-                      // if (endY < 1160) {
+                      // if (endY < 933 || endY >= 980) {
                       //     return;
                       // }
                       if (prevSymbol && this.endY(prevSymbol) != endY) {

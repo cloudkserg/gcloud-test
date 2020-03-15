@@ -43,7 +43,9 @@ module.exports = async (req, res, next) => {
 
     const textProcessor = new TextProcessor(lineSymbols, lines, widhts);
     const text = textProcessor.processText();
-    const result = {path: image, rows: text.items, totalPrice: text.totalPrice, lines};
+    const result = {path: image, rows: text.items, totalPrice: text.totalPrice, lines,
+        startYs: lineProcessor.startYs,
+        debug: lineProcessor.debug};
     res.json(result);
     // try {
     //     const processor = new GoogleProcessor();
