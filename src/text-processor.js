@@ -816,7 +816,7 @@ module.exports =  class TextProcessor {
         return (textAfter.length > textBefore.length) ? textAfter : textBefore;
     }
 
-    getItems (pricePosition, countPosition, startY, endY) {
+    getItems (pricePosition, countPosition, startY, endY, totalPrice) {
         const items = [];
         this.processY = null;
         for (const y in this.lineSymbols) {
@@ -831,14 +831,17 @@ module.exports =  class TextProcessor {
                 continue;
             }
             const line = this.lineSymbols[y];
-
-            if (y  == '977') {
-                const a = 'g';
-            }
+            //
+            // if (y  == '977') {
+            //     const a = 'g';
+            // }
             const price = this.getPriceFromPosition(line, pricePosition, y);
             if (!price) {
                 // если разница между текущей строчкой и предудущей строкой = 1 - соединяем их
                 // this.joinCurrentRowWithNext(y);
+                continue;
+            }
+            if (price == totalPrice) {
                 continue;
             }
 
@@ -862,7 +865,7 @@ module.exports =  class TextProcessor {
         const totalPrice = this.getTotalPrice();
 
         const {pricePosition, countPosition, startY, endY} = this.getPricePosition(totalPrice);
-        const items = this.getItems(pricePosition, countPosition, startY, endY);
+        const items = this.getItems(pricePosition, countPosition, startY, endY, totalPrice);
 
 
         return {

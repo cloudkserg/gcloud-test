@@ -7,6 +7,7 @@ new Vue({
         totalPrice: null,
         image: null,
         imageUrl: null,
+        imageName: null,
         debug: [],
         lines: [],
         serverError: null,
@@ -25,6 +26,7 @@ new Vue({
     methods: {
         onFileChange(e) {
             this.image = e.target.files[0];
+            this.imageName = e.target.files[0].name;
             this.imageUrl = URL.createObjectURL(this.image);
         },
         submitImage() {
