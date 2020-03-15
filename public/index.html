@@ -21,9 +21,11 @@
             <h1>Neural application</h1>
         </div>
     </div>
+
     <div class="row" v-if="imageUrl">
         <img :src="imageUrl" class="image" />
     </div>
+    <div class="row">{{imageUrl}}</div>
     <div class="row">
         <div class="col-md-5">
             Image <input type="file" @change="onFileChange" />
