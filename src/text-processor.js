@@ -203,6 +203,11 @@ module.exports =  class TextProcessor {
 
             if (!this.isCLosedToPreviousSymbol(line, currentX, y)) {
                 if (!priceHasPoint) {
+                    //break;
+                    // currentX = this.getNextX(line, currentX);
+                    // continue;
+                }
+                if (this.hasTwoOrMoreDigitsAfter(price)) {
                     break;
                 }
             }
@@ -476,6 +481,11 @@ module.exports =  class TextProcessor {
     hasTwoDigitsAfter(priceStr) {
         const priceAfter = priceStr.split('.');
         return priceAfter && priceAfter.length > 1 && priceAfter[1].length == 2;
+    }
+
+    hasTwoOrMoreDigitsAfter(priceStr) {
+        const priceAfter = priceStr.split('.');
+        return priceAfter && priceAfter.length > 1 && priceAfter[1].length >= 2;
     }
 
     hasPointInMedium(price) {
@@ -774,10 +784,10 @@ module.exports =  class TextProcessor {
 
     getTextBeforePosition (line, pricePosition, countPosition, y) {
         let nearestPriceX = this.getMaxPreviousX(line, pricePosition, this.isNotNumber, y);
-        if (!nearestPriceX) {
-            nearestPriceX = line.length;
-        }
         const lineXs = Object.keys(line);
+        if (!nearestPriceX) {
+            nearestPriceX = lineXs.length;
+        }
         let nearestCountX = lineXs[lineXs.length -1];
         let endedCountX = nearestCountX;
         if (countPosition) {
@@ -802,10 +812,11 @@ module.exports =  class TextProcessor {
     getTextAfterPosition (line, pricePosition, countPosition, y) {
         let nearestPriceX = this.getMaxPreviousX(line, pricePosition, this.isNotNumber, y);
         let endedPriceX = this.getEndedCountX(line, nearestPriceX);
-        if (!endedPriceX) {
-            endedPriceX = line.length;
-        }
+
         let endedCountX = Object.values(line).length;
+        if (!endedPriceX) {
+            endedPriceX = endedCountX;
+        }
         let nearestCountX = endedCountX;
         if (countPosition) {
             nearestCountX = this.getMaxPreviousX(line, countPosition, this.isNotNumber, y) || nearestCountX;
@@ -854,6 +865,9 @@ module.exports =  class TextProcessor {
             const numberPositions = this.getPricePositionsForLine(y);
             const intNumberPositions = _.map(numberPositions, numberPosition => parseInt(numberPosition.pricePosition));
             const maxNumberPosition = _.max(intNumberPositions);
+            if (maxNumberPosition < pricePosition && maxNumberPosition - pricePosition > MAX_DIFFS_IN_X) {
+                continue;
+            }
             const price = this.getPriceFromPosition(line, maxNumberPosition, y);
             if (!price) {
                 // если разница между текущей строчкой и предудущей строкой = 1 - соединяем их
