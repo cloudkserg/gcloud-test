@@ -19,14 +19,14 @@ function base64Image(src) {
 module.exports = async (req, res, next) => {
     let resultJson;
     // const image = __dirname + '../uploads/image2.jpg';
-    // resultJson = require('../tests/json/test3');
+    // resultJson = require('./test997');
 
     const image = req.file.path;
     try {
          const processor = new GoogleProcessor();
          resultJson = await processor.parseImage(image);
          // fs.writeFileSync(
-         //     __dirname + '/test3.json',
+         //     __dirname + '/test997.json',
          //     JSON.stringify(resultJson)
          // );
      } catch (err) {
@@ -43,9 +43,13 @@ module.exports = async (req, res, next) => {
 
     const textProcessor = new TextProcessor(lineSymbols, lines, widhts);
     const text = textProcessor.processText();
-    const result = {path: image, rows: text.items, totalPrice: text.totalPrice, lines,
+    const result = {
+        path: image, rows: text.items, totalPrice: text.totalPrice,
+        priceCalculations: textProcessor.priceCalculations,
+        lines,
         startYs: lineProcessor.startYs,
-        debug: lineProcessor.debug};
+        debug: lineProcessor.debug,
+    };
     res.json(result);
     // try {
     //     const processor = new GoogleProcessor();

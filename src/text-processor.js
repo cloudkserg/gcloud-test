@@ -7,6 +7,10 @@ const _ = require('lodash');
 const MAX_DIFFS_IN_X = 20;
 const DIFFS_IN_X = 15;
 
+const floatSum = (sumPrice, price) => {
+    return +(sumPrice + price).toFixed(12)
+};
+
 module.exports =  class TextProcessor {
 
     constructor (lineSymbols, lines, widths) {
@@ -16,6 +20,7 @@ module.exports =  class TextProcessor {
         this.widths = widths;
         this.savedPositions = null;
         this.savePositionOnY = 0;
+        this.priceCalculations = null;
     }
 
     getMaxDiffForY(y, x) {
@@ -167,6 +172,9 @@ module.exports =  class TextProcessor {
     }
 
     getPriceFromPosition (line, x, y, toFloat = true) {
+        if (y  == '858') {
+            const a = 'g';
+        }
         let nearestX = this.findNearestX(line, x, y);
         const char = line[nearestX];
         if (isNaN(parseInt(char))) {
@@ -203,6 +211,9 @@ module.exports =  class TextProcessor {
                 priceHasPoint = true;
                 price += '.';
             } else if (nextChar == ' ') {
+                if (this.isPrice(price) && this.hasTwoDigitsAfter(price)) {
+                    break;
+                }
                 currentX = this.getNextX(line, currentX);
                 continue;
             } else if (isNaN(parseInt(nextChar))) {
@@ -218,7 +229,9 @@ module.exports =  class TextProcessor {
 
             currentX = this.getNextX(line, currentX);
         }
-
+        if (y  == '858') {
+            const a = 'g';
+        }
         if (!this.isPrice(price)) {
             return NaN;
         }
@@ -616,7 +629,7 @@ module.exports =  class TextProcessor {
             }
             const price = parseFloat(priceStr);
             if (price && price > 0) {
-                sumPrice = +(sumPrice + price).toFixed(12)
+                sumPrice = floatSum(sumPrice, price);
                 tryItemsInPrice++;
                 lastSavedYIndex = currencyYIndex;
             }
@@ -661,7 +674,7 @@ module.exports =  class TextProcessor {
             startY: 0,
             endY: 0
         };
-        const priceCalculations = [];
+        const priceCalculations = {};
         //     pricePosition: null, [2: {price: 10, priceItems: 10, startY: 0, endY: 0}]
         //     priceItems: 0
         // };
@@ -672,7 +685,7 @@ module.exports =  class TextProcessor {
                 break;
             }
             //todo: deleted
-            // if (y < 517) {
+            // if (y < 733) {
             //     continue;
             // }
             const pricePositions = this.getPricePositionsForLine(y);
@@ -708,6 +721,7 @@ module.exports =  class TextProcessor {
             // }
         }
 
+        this.priceCalculations = priceCalculations;
         if (totalPriceCalculation.priceItems > 0) {
             return this.getPriceOutputCalculation(totalPriceCalculation);
         }
@@ -725,7 +739,8 @@ module.exports =  class TextProcessor {
     }
 
     getMaxPriceCalculationsByPriceItemsAndPrice(priceCalculations, totalPrice) {
-        return priceCalculations.reduce((maxPriceCalculation, priceCalculation) => {
+        const priceValues = Object.values(priceCalculations);
+        return priceValues.reduce((maxPriceCalculation, priceCalculation) => {
             if (!maxPriceCalculation) {
                 return priceCalculation;
             }
@@ -832,10 +847,14 @@ module.exports =  class TextProcessor {
             }
             const line = this.lineSymbols[y];
             //
-            // if (y  == '977') {
-            //     const a = 'g';
-            // }
-            const price = this.getPriceFromPosition(line, pricePosition, y);
+            if (y  == '858') {
+                const a = 'g';
+            }
+
+            const numberPositions = this.getPricePositionsForLine(y);
+            const intNumberPositions = _.map(numberPositions, numberPosition => parseInt(numberPosition.pricePosition));
+            const maxNumberPosition = _.max(intNumberPositions);
+            const price = this.getPriceFromPosition(line, maxNumberPosition, y);
             if (!price) {
                 // если разница между текущей строчкой и предудущей строкой = 1 - соединяем их
                 // this.joinCurrentRowWithNext(y);
