@@ -11,6 +11,7 @@ module.exports = class LineProcessor {
         this.lineSymbols = {};
         this.startYs = {};
         this.debug = {};
+        this.transformations = {};
         this.widths = {};
     }
 
@@ -172,15 +173,18 @@ module.exports = class LineProcessor {
         this.widths[endY] = newCurrentWidths;
     }
 
-    addSymbolsToNearestLine(nearestLine, nearestWidths, currentSymbols, currentWidths) {
+    addSymbolsToNearestLine(nearestLine, nearestWidths, currentSymbols, currentWidths, findedY) {
         for (let compareX in currentSymbols) {
             if (!nearestLine[compareX]) {
                 nearestLine[compareX] = currentSymbols[compareX];
                 nearestWidths[compareX] = currentWidths[compareX];
             } else {
-                let tryCompareX = compareX + 1;
+                let tryCompareX = +compareX + 1;
                 while (!!nearestLine[tryCompareX]) {
-                    tryCompareX = tryCompareX + 1;
+                    tryCompareX = +tryCompareX + 1;
+                }
+                if (tryCompareX != compareX) {
+                    this.addTransformationDebug(findedY, tryCompareX, compareX)
                 }
                 nearestLine[tryCompareX] = currentSymbols[compareX];
                 nearestWidths[tryCompareX] = currentWidths[compareX];
@@ -220,13 +224,23 @@ module.exports = class LineProcessor {
         return newEndY;
     }
 
+    addTransformationDebug(y, newX, prevX) {
+        if (!this.transformations[y]) {
+            this.transformations[y] = [];
+        }
+        this.transformations[y].push(`${prevX} => ${newX}`);
+    }
+
     addDebug(symbol) {
         const verticeStart = symbol.boundingBox.vertices[0];
         const vertice = symbol.boundingBox.vertices[2];
         if (!this.debug[verticeStart.y]) {
             this.debug[verticeStart.y] = [];
         }
-        this.debug[verticeStart.y].push(symbol.text + ' - ' + verticeStart.y + '->' + vertice.y);
+        this.debug[verticeStart.y].push(
+            `${symbol.text} - y(${verticeStart.y}->${vertice.y})` +
+             `, x(${verticeStart.x}->${vertice.x})`
+             );
     }
 
     finishCurrentLine (symbol) {
@@ -243,7 +257,8 @@ module.exports = class LineProcessor {
 
             const {nearestLine: newNearestLine, nearestWidths: newNearestWidths} = this.addSymbolsToNearestLine(
                 nearestLine, nearestWidths,
-                this.currentSymbols, this.currentWidths
+                this.currentSymbols, this.currentWidths,
+                findedY
             );
             let newEndY = this.updateCurrentLine(symbol, newNearestLine, findedY);
             this.updateNewCurrentWidths(findedY, newEndY, newNearestWidths);
@@ -361,5 +376,20 @@ module.exports = class LineProcessor {
 
     getWidths() {
         return this.widths;
+    }
+
+    getDebug() {
+        const debug = {};
+        for (let y in this.lineSymbols) {
+            const line = this.lineSymbols[y];
+            const debugLine = {}
+            for (const x in line) {
+                const char = line[x];
+                const startX = x - this.widths[y][x];
+                debugLine[x] = `${char}(${startX}->${x})`;
+            }
+            debug[y] = debugLine;
+        }
+        return debug;
     }
 };

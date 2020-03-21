@@ -48,7 +48,9 @@ module.exports = async (req, res, next) => {
         priceCalculations: textProcessor.priceCalculations,
         lines,
         startYs: lineProcessor.startYs,
-        debug: lineProcessor.debug,
+        debug: lineProcessor.getDebug(),
+        transformations: lineProcessor.transformations,
+        superDebug: lineProcessor.debug
     };
     res.json(result);
     // try {

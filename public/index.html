@@ -79,8 +79,13 @@
             <h2>LINES</h2>
         </div>
         <table  class="table table-striped table-bordered">
-            <tr v-for="line of lines">
-                <td>{{line}}</td>
+            <thead>
+                <th>y</th>
+                <th>line</th>
+            </thead>
+            <tr v-for="(yLine, y) in lines" :key="y">
+                <td>{{y}}</td>
+                <td>{{yLine}}</td>
             </tr>
         </table>
     </div>
@@ -95,7 +100,11 @@
             </thead>
             <tr v-for="(lines, y) in debug">
                 <td>{{y}}</td>
-                <td>{{lines.join(';')}}</td>
+                <td>
+                    <span v-for="(char, x) in lines">
+                        {{char}};
+                    </span>
+                </td>
             </tr>
         </table>
     </div>
