@@ -37,9 +37,9 @@ describe('First Ten tests', function() {
 
             const {rows, totalPrice} = getData(require('../json/test710'));
 
+            expect(totalPrice).to.eq(needTotalPrice);
             expect(rows.length).to.eq(needCountRows);
             expect(getSumByRows(rows)).to.eq(needTotalPrice);
-            expect(totalPrice).to.eq(needTotalPrice);
         });
     });
 
@@ -50,9 +50,9 @@ describe('First Ten tests', function() {
 
             const {rows, totalPrice} = getData(require('../json/test831'));
 
+            expect(totalPrice).to.eq(needTotalPrice);
             expect(rows.length).to.eq(needCountRows);
             expect(getSumByRows(rows)).to.eq(needTotalPrice);
-            expect(totalPrice).to.eq(needTotalPrice);
         });
     });
 
@@ -63,9 +63,9 @@ describe('First Ten tests', function() {
 
             const {rows, totalPrice} = getData(require('../json/test997'));
 
+            expect(totalPrice).to.eq(needTotalPrice);
             expect(rows.length).to.eq(needCountRows);
             expect(getSumByRows(rows)).to.eq(needTotalPrice);
-            expect(totalPrice).to.eq(needTotalPrice);
         });
     });
 
@@ -76,9 +76,9 @@ describe('First Ten tests', function() {
 
             const {rows, totalPrice} = getData(require('../json/test1168'));
 
+            expect(totalPrice).to.eq(needTotalPrice);
             expect(rows.length).to.eq(needCountRows);
             expect(getSumByRows(rows)).to.eq(needTotalPrice);
-            expect(totalPrice).to.eq(needTotalPrice);
         });
     });
 
@@ -89,9 +89,9 @@ describe('First Ten tests', function() {
 
             const {rows, totalPrice} = getData(require('../json/test1275'));
 
+            expect(totalPrice).to.eq(needTotalPrice);
             expect(rows.length).to.eq(needCountRows);
             expect(getSumByRows(rows)).to.eq(needTotalPrice);
-            expect(totalPrice).to.eq(needTotalPrice);
         });
     });
 
@@ -102,9 +102,9 @@ describe('First Ten tests', function() {
 
             const {rows, totalPrice} = getData(require('../json/test1452'));
 
+            expect(totalPrice).to.eq(needTotalPrice);
             expect(rows.length).to.eq(needCountRows);
             expect(getSumByRows(rows)).to.eq(needTotalPrice);
-            expect(totalPrice).to.eq(needTotalPrice);
         });
     });
 
@@ -115,9 +115,9 @@ describe('First Ten tests', function() {
 
             const {rows, totalPrice} = getData(require('../json/test1622'));
 
+            expect(totalPrice).to.eq(needTotalPrice);
             expect(rows.length).to.eq(needCountRows);
             expect(getSumByRows(rows)).to.eq(needTotalPrice);
-            expect(totalPrice).to.eq(needTotalPrice);
         });
     });
 
@@ -128,9 +128,9 @@ describe('First Ten tests', function() {
 
             const {rows, totalPrice} = getData(require('../json/test1686'));
 
+            expect(totalPrice).to.eq(needTotalPrice);
             expect(rows.length).to.eq(needCountRows);
             expect(getSumByRows(rows)).to.eq(needTotalPrice);
-            expect(totalPrice).to.eq(needTotalPrice);
         });
     });
 
@@ -141,9 +141,9 @@ describe('First Ten tests', function() {
 
             const {rows, totalPrice} = getData(require('../json/test1832'));
 
+            expect(totalPrice).to.eq(needTotalPrice);
             expect(rows.length).to.eq(needCountRows);
             expect(getSumByRows(rows)).to.eq(needTotalPrice);
-            expect(totalPrice).to.eq(needTotalPrice);
         });
     });
 
@@ -154,9 +154,9 @@ describe('First Ten tests', function() {
 
             const {rows, totalPrice} = getData(require('../json/test3774'));
 
+            expect(totalPrice).to.eq(needTotalPrice);
             expect(rows.length).to.eq(needCountRows);
             expect(getSumByRows(rows)).to.eq(needTotalPrice);
-            expect(totalPrice).to.eq(needTotalPrice);
         });
     });
 
@@ -166,8 +166,9 @@ describe('First Ten tests', function() {
             const needCountRows = 5;
 
             const {rows, totalPrice} = getData(require('../json/test4215'));
-            expect(getSumByRows(rows)).to.eq(needTotalPrice);
             expect(totalPrice).to.eq(needTotalPrice);
+            expect(rows.length).to.eq(needCountRows);
+            expect(getSumByRows(rows)).to.eq(needTotalPrice);
         });
     });
 
@@ -178,9 +179,9 @@ describe('First Ten tests', function() {
 
             const {rows, totalPrice} = getData(require('../json/20190805_084419'));
 
+            expect(totalPrice).to.eq(needTotalPrice);
             expect(rows.length).to.eq(needCountRows);
             expect(getSumByRows(rows)).to.eq(needTotalPrice);
-            expect(totalPrice).to.eq(needTotalPrice);
         });
     });
 
@@ -191,9 +192,9 @@ describe('First Ten tests', function() {
 
             const {rows, totalPrice} = getData(require('../json/20190810_193936'));
 
+            expect(totalPrice).to.eq(needTotalPrice);
             expect(rows.length).to.eq(needCountRows);
             expect(getSumByRows(rows)).to.eq(needTotalPrice);
-            expect(totalPrice).to.eq(needTotalPrice);
         });
     });
 

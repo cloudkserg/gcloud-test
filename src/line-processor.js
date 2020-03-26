@@ -86,20 +86,60 @@ module.exports = class LineProcessor {
         return null;
     }
 
-    findYWithDiff(startY, endY) {
-        for (let prevEndY in this.startYs) {
-            let prevStartY = this.startYs[prevEndY];
-            if (startY <= prevEndY &&  endY >= prevStartY && prevEndY - endY > MAX_DIFF_NEAREST_Y) {
-                return prevEndY;
+    getCrossLength(lineOne, lineSecond) {
+        if (lineOne.start - MAX_DIFF_NEAREST_Y > lineSecond.end) {
+            return 0;
+        }
+        if (lineOne.end + MAX_DIFF_NEAREST_Y  < lineSecond.start) {
+            return 0;
+        }
+
+        //first situation - one started after second
+        if (lineOne.start >= lineSecond.start) {
+            //first - one - one almost in second
+            if (lineOne.end <= lineSecond.end) {
+                return lineOne.end - lineOne.start;
+            } else {
+                return lineSecond.end - lineOne.start;
             }
         }
-        return null;
+        //second situation - one started before second
+        if (lineOne.start <= lineSecond.start) {
+            //first - second - second almost in one
+            if (lineSecond.end <= lineOne.end) {
+                return lineSecond.end - lineSecond.start;
+            } else {
+                return lineOne.end - lineSecond.start;
+            }
+        }
+        return 1;
+    }
+
+    findYWithDiff(startY, endY) {
+        let maxCrossPoints = 0;
+        let savedPrevEndY = null;
+        for (let prevEndY in this.startYs) {
+            let prevStartY = parseInt(this.startYs[prevEndY]);
+            prevEndY = parseInt(prevEndY);
+
+            const tryMaxCrossPoints = Math.abs(this.getCrossLength(
+                {start: parseInt(startY), end: parseInt(endY)},
+                {start: parseInt(prevStartY), end: parseInt(prevEndY)}
+            ));
+            const heightOfChar = endY - startY;
+            const minCrossing = 0.2 * heightOfChar;
+            if (tryMaxCrossPoints > maxCrossPoints && tryMaxCrossPoints >= minCrossing) {
+                maxCrossPoints = tryMaxCrossPoints;
+                savedPrevEndY = prevEndY;
+            }
+        }
+        return savedPrevEndY;
     }
 
     findNearestY (startY, endY, width) {
-        // if (endY == 977) {
-        //     const a = 2;
-        // }
+        if (startY == 1079) {
+            const a = 2;
+        }
         const yWithDiff = this.findYWithDiff(startY, endY);
         if (yWithDiff) {
             return yWithDiff;
@@ -205,10 +245,10 @@ module.exports = class LineProcessor {
 
     updateStartYForCurrentLine(newEndY, oldEndY, newStartY) {
         const oldStartY = this.startYs[oldEndY];
-        let updatedY = oldStartY;
-        if (newStartY < oldStartY) {
-            updatedY = newStartY;
-        }
+         let updatedY = oldStartY;
+         if (newStartY < oldStartY) {
+             updatedY = newStartY;
+         }
         delete this.startYs[oldEndY];
         this.startYs[newEndY] = updatedY;
     }
@@ -219,9 +259,13 @@ module.exports = class LineProcessor {
         const verticeStart = symbol.boundingBox.vertices[0];
         const startY = verticeStart.y;
 
-        const newEndY = this.updateEndYForCurrentLine(endY, findedY, nearestLine);
-        this.updateStartYForCurrentLine(newEndY, findedY, startY);
-        return newEndY;
+
+        //todo: may be or may not
+        //const newEndY = this.updateEndYForCurrentLine(endY, findedY, nearestLine);
+        //this.updateStartYForCurrentLine(newEndY, findedY, startY);
+        //return newEndY;
+
+        return findedY;
     }
 
     addTransformationDebug(y, newX, prevX) {
@@ -250,7 +294,6 @@ module.exports = class LineProcessor {
         const startY = verticeStart.y;
 
         const findedY = this.findNearestY(startY, endY, this.getWidth(symbol));
-        this.addDebug(symbol);
         if (findedY) {
             let nearestLine = this.lineSymbols[findedY];
             let nearestWidths = this.widths[findedY];
@@ -334,9 +377,10 @@ module.exports = class LineProcessor {
                       const vertice = symbol.boundingBox.vertices[2];
                       const endY = vertice.y;
                       const endX = vertice.x;
-                      // if (endY < 933 || endY >= 980) {
-                      //     return;
-                      // }
+                      this.addDebug(symbol);
+                      if (endY > 850) {
+                          const a = 'b';
+                      }
                       if (prevSymbol && this.endY(prevSymbol) != endY) {
                           this.finishCurrentLine(prevSymbol);
                       }

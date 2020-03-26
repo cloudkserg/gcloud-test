@@ -56,22 +56,25 @@ module.exports =  class TextProcessor {
         return minNextX;
     }
 
-    findNearestX (line, x, y) {
+    findNearestX (line, x, y, isCheckSymbol = (x) => true) {
         const existedX = this.findExistedX(line, x, y);
 
-        if (this.isCLosedToPreviousSymbol(line, existedX, y) && !this.isPrevSymbolEqualSpace(line, existedX)) {
+        const prevX = this.getPrevX(line, existedX);
+        if (!prevX) {
+            return existedX;
+        }
+        const prevChar = line[prevX];
+        if (this.isCLosedToPreviousSymbol(line, existedX, y)
+            && !this.isPrevSymbolEqualSpace(prevChar)
+            && isCheckSymbol(prevChar)
+        ) {
             const prevX = this.getPrevX(line, existedX);
             return this.findNearestX(line, prevX, y);
         }
         return existedX;
     }
 
-    isPrevSymbolEqualSpace(line, existedX) {
-        const prevX = this.getPrevX(line, existedX);
-        if (!prevX) {
-            return false;
-        }
-        const prevChar = line[prevX];
+    isPrevSymbolEqualSpace(prevChar) {
         return prevChar == ' ';
     }
 
@@ -174,11 +177,11 @@ module.exports =  class TextProcessor {
         // return isNaN(parseInt(prevChar));
     }
 
-    getPriceFromPosition (line, x, y, toFloat = true) {
+    getPriceFromPosition (line, x, y, toFloat = true, asTotal = false) {
         if (y  == '332') {
             const a = 'g';
         }
-        let nearestX = this.findNearestX(line, x, y);
+        let nearestX = this.findNearestX(line, x, y, x => this.isNumber(x));
         const char = line[nearestX];
         if (isNaN(parseInt(char))) {
             return NaN;
@@ -223,7 +226,9 @@ module.exports =  class TextProcessor {
                     currentX = this.getNextX(line, currentX);
                     continue;
                 }
-                break;
+                if (!asTotal) {
+                    break;
+                }
                 //previous fixing
                 // if (this.isPrice(price) && this.hasTwoDigitsAfter(price)) {
                 //     break;
@@ -265,7 +270,7 @@ module.exports =  class TextProcessor {
         return true;
     }
 
-    calculatePricePositions(line, y) {
+    calculatePricePositions(line, y, asTotal = false) {
         const pricePositions = [];
         let currentPrice = null;
         let currentNumberPosition = null;
@@ -303,7 +308,7 @@ module.exports =  class TextProcessor {
                     currentNumberPosition = null;
                     currentPrice = null;
                     continue;
-                } else if (this.hasPointInEnd(currentPrice)) {
+                } else if (this.hasPointInEnd(currentPrice) || asTotal) {
                     continue;
                 } else {
                     currentNumberPosition = null;
@@ -469,9 +474,14 @@ module.exports =  class TextProcessor {
 
     hasTotalWord(line) {
         const totalWords = [
+            'Bar',
+            'offen',
+            'К оплате',
             'Total',
+            'Tatal', //may be synonim of Total
             'Karte',
             'Sunne',
+            'Summe', //may be synonim of Symme
             'Итого',
             'Всего',
             'Bcero',
@@ -638,6 +648,8 @@ module.exports =  class TextProcessor {
                 totalPrices[y] = this.parseLineWithTotalWord(y, line);
                 if (totalPrices[y] !== null) {
                     this.totalY = y;
+                } else {
+                    delete totalPrices[y];
                 }
             }
         }
@@ -705,7 +717,7 @@ module.exports =  class TextProcessor {
             }
 
             const line = this.lineSymbols[y];
-            const priceStr = this.getPriceFromPosition(line, numberPosition, y, false);
+            const priceStr = this.getPriceFromPosition(line, numberPosition, y, false, asTotal);
             if (!priceStr) {
                 continue;
             }
@@ -734,7 +746,7 @@ module.exports =  class TextProcessor {
 
     getPricePositionsForLine(y, asTotal = false) {
         const line = this.lineSymbols[y];
-        const numberPositions = this.calculatePricePositions(line, y);
+        const numberPositions = this.calculatePricePositions(line, y, asTotal);
         const pricePositions = [];
         for (const numberPosition of numberPositions) {
             const a = '1';
@@ -841,6 +853,10 @@ module.exports =  class TextProcessor {
 
     isNotNumber(x) {
         return !isNaN(parseInt(x)) && x != '.' && x != ',';
+    }
+
+    isNumber(x) {
+        return !isNaN(parseInt(x));
     }
 
     getEndedCountX(line, nearestCountX) {
