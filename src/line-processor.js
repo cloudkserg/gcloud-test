@@ -5,9 +5,6 @@ const SPACE_SYMBOL = 'SPACE';
 module.exports = class LineProcessor {
 
     constructor () {
-        this.currentLine = "";
-        this.currentSymbols = {};
-        this.currentWidths = {};
         this.lineSymbols = {};
         this.startYs = {};
         this.debug = {};
@@ -86,34 +83,6 @@ module.exports = class LineProcessor {
         return null;
     }
 
-    getCrossLength(lineOne, lineSecond) {
-        if (lineOne.start - MAX_DIFF_NEAREST_Y > lineSecond.end) {
-            return 0;
-        }
-        if (lineOne.end + MAX_DIFF_NEAREST_Y  < lineSecond.start) {
-            return 0;
-        }
-
-        //first situation - one started after second
-        if (lineOne.start >= lineSecond.start) {
-            //first - one - one almost in second
-            if (lineOne.end <= lineSecond.end) {
-                return lineOne.end - lineOne.start;
-            } else {
-                return lineSecond.end - lineOne.start;
-            }
-        }
-        //second situation - one started before second
-        if (lineOne.start <= lineSecond.start) {
-            //first - second - second almost in one
-            if (lineSecond.end <= lineOne.end) {
-                return lineSecond.end - lineSecond.start;
-            } else {
-                return lineOne.end - lineSecond.start;
-            }
-        }
-        return 1;
-    }
 
     findYWithDiff(startY, endY) {
         let maxCrossPoints = 0;
@@ -136,10 +105,8 @@ module.exports = class LineProcessor {
         return savedPrevEndY;
     }
 
+
     findNearestY (startY, endY, width) {
-        if (startY == 1079) {
-            const a = 2;
-        }
         const yWithDiff = this.findYWithDiff(startY, endY);
         if (yWithDiff) {
             return yWithDiff;
@@ -185,19 +152,18 @@ module.exports = class LineProcessor {
         return maxMinY;
     }
 
-    getWidth(symbol) {
-        const vertices = symbol.boundingBox.vertices;
+    getWidth(vertices) {
         const minX = _.min(vertices.map(vertice => vertice.x));
         const maxX = _.max(vertices.map(vertice => vertice.x));
         return maxX - minX;
     }
 
-    saveNewCurrentLine(symbol, currentSymbols) {
-        const vertice = symbol.boundingBox.vertices[2];
+    saveNewCurrentLine(vertices, currentSymbols) {
+        const vertice = vertices[2];
         const endY = vertice.y;
         this.lineSymbols[endY] = currentSymbols;
 
-        const verticeStart = symbol.boundingBox.vertices[0];
+        const verticeStart = vertices[0];
         const startY = verticeStart.y;
         this.startYs[endY] =  startY;
 
@@ -253,10 +219,10 @@ module.exports = class LineProcessor {
         this.startYs[newEndY] = updatedY;
     }
 
-    updateCurrentLine (symbol, nearestLine, findedY) {
-        const vertice = symbol.boundingBox.vertices[2];
+    updateCurrentLine (vertices, nearestLine, findedY) {
+        const vertice = vertices[2];
         const endY = vertice.y;
-        const verticeStart = symbol.boundingBox.vertices[0];
+        const verticeStart = vertices[0];
         const startY = verticeStart.y;
 
 
@@ -287,78 +253,34 @@ module.exports = class LineProcessor {
              );
     }
 
-    finishCurrentLine (symbol) {
-        const vertice = symbol.boundingBox.vertices[2];
+    finishCurrentLine (text, width, vertices) {
+        const vertice = vertices[2];
         const endY = vertice.y;
-        const verticeStart = symbol.boundingBox.vertices[0];
+        const verticeStart = vertices[0];
         const startY = verticeStart.y;
 
-        const findedY = this.findNearestY(startY, endY, this.getWidth(symbol));
+        const currentSymbols = {};
+        currentSymbols[vertice.x] = text;
+        const currentWidths = {};
+        currentWidths[vertice.x] = width;
+
+
+        const findedY = this.findNearestY(startY, endY, this.getWidth(vertices));
         if (findedY) {
             let nearestLine = this.lineSymbols[findedY];
             let nearestWidths = this.widths[findedY];
 
+            currentSymbols[vertice.x] = ' ' + text;
             const {nearestLine: newNearestLine, nearestWidths: newNearestWidths} = this.addSymbolsToNearestLine(
                 nearestLine, nearestWidths,
-                this.currentSymbols, this.currentWidths,
+                currentSymbols, currentWidths,
                 findedY
             );
-            let newEndY = this.updateCurrentLine(symbol, newNearestLine, findedY);
+            let newEndY = this.updateCurrentLine(vertices, newNearestLine, findedY);
             this.updateNewCurrentWidths(findedY, newEndY, newNearestWidths);
         } else {
-            let newEndY = this.saveNewCurrentLine(symbol, this.currentSymbols);
-            this.saveNewCurrentWidths(newEndY, this.currentWidths);
-        }
-        this.currentSymbols = {};
-        this.currentWidths = {};
-    }
-
-    parseBreakSymbol(symbol) {
-        const endX = symbol.boundingBox.vertices[2].x
-        const SYMBOL_TYPES = {
-            [`${SPACE_SYMBOL}`]: (symbol) => {
-                this.addSymbolToCurrentSymbols(symbol, endX);
-                const newSymbol = symbol;
-                newSymbol.text = ' ';
-                this.addSymbolToCurrentSymbols(newSymbol, endX)
-            },
-            'EOL_SURE_SPACE': (symbol) => {
-                this.addSymbolToCurrentSymbols(symbol, endX);
-                const newSymbol = symbol;
-                newSymbol.text = ' ';
-                this.addSymbolToCurrentSymbols(newSymbol, endX)
-                this.finishCurrentLine(symbol);
-            },
-            'LINE_BREAK': (symbol) => {
-                this.addSymbolToCurrentSymbols(symbol, endX);
-                this.finishCurrentLine(symbol);
-            }
-        };
-
-        const detectedBreak = symbol.property.detectedBreak.type;
-        if (!SYMBOL_TYPES[detectedBreak]) {
-            throw new Error('Not right symbol ' + require('util').inspect(symbol, {depth: 10}));
-        }
-        return SYMBOL_TYPES[detectedBreak](symbol);
-    }
-
-    getTextFromSymbol(symbol) {
-        // if (symbol.property && symbol.property.detectedBreak) {
-        //     const detectedBreak = symbol.property.detectedBreak.type;
-        //     if (detectedBreak === SPACE_SYMBOL) {
-        //         return ' ';
-        //     }
-        //     return '';
-        // }
-        return symbol.text;
-    }
-
-    addSymbolToCurrentSymbols(symbol, x) {
-        if (!this.currentSymbols[x]) {
-            this.currentSymbols[x] = this.getTextFromSymbol(symbol);
-            this.currentWidths[x] = this.getWidth(symbol);
-        } else {
-            this.addSymbolToCurrentSymbols(symbol, x+1);
+            let newEndY = this.saveNewCurrentLine(vertices, currentSymbols);
+            this.saveNewCurrentWidths(newEndY, currentWidths);
         }
     }
 
@@ -367,38 +289,49 @@ module.exports = class LineProcessor {
     }
 
 
+    getCrossLength(lineOne, lineSecond) {
+        if (lineOne.start - MAX_DIFF_NEAREST_Y > lineSecond.end) {
+            return 0;
+        }
+        if (lineOne.end + MAX_DIFF_NEAREST_Y  < lineSecond.start) {
+            return 0;
+        }
 
-    getLines(page) {
-      page.blocks.forEach(block => {
-          block.paragraphs.forEach(paragraph => {
-              paragraph.words.forEach(word => {
-                  let prevSymbol = null;
-                  word.symbols.forEach(symbol => {
-                      const vertice = symbol.boundingBox.vertices[2];
-                      const endY = vertice.y;
-                      const endX = vertice.x;
-                      this.addDebug(symbol);
-                      if (endY > 850) {
-                          const a = 'b';
-                      }
-                      if (prevSymbol && this.endY(prevSymbol) != endY) {
-                          this.finishCurrentLine(prevSymbol);
-                      }
+        //first situation - one started after second
+        if (lineOne.start >= lineSecond.start) {
+            //first - one - one almost in second
+            if (lineOne.end <= lineSecond.end) {
+                return lineOne.end - lineOne.start;
+            } else {
+                return lineSecond.end - lineOne.start;
+            }
+        }
+        //second situation - one started before second
+        if (lineOne.start <= lineSecond.start) {
+            //first - second - second almost in one
+            if (lineSecond.end <= lineOne.end) {
+                return lineSecond.end - lineSecond.start;
+            } else {
+                return lineOne.end - lineSecond.start;
+            }
+        }
+        return 1;
+    }
 
-                      prevSymbol = symbol;
-                      if (symbol.property && symbol.property.detectedBreak) {
-                          this.parseBreakSymbol(symbol);
-                      } else {
-                          this.addSymbolToCurrentSymbols(symbol, endX);
-                      }
-                  });
-                  if (prevSymbol && !this.isEmptyCurrentSymbols()) {
-                      this.finishCurrentLine(prevSymbol);
-                  }
 
-              });
-          });
+    getLines(segments) {
+      segments.forEach(segment => {
+          const verticeTop = segment.boundingPoly.vertices[0];
+          const verticeDown = segment.boundingPoly.vertices[3];
+
+          const endY = verticeDown.y;
+          const endX = verticeDown.x;
+          const width = this.getWidth(segment.boundingPoly.vertices);
+          this.finishCurrentLine(segment.description, width, segment.boundingPoly.vertices);
+
+
       });
+
       return _.chain(this.getFlatLines())
           .toPairs()
           .sortBy(0)
@@ -406,14 +339,10 @@ module.exports = class LineProcessor {
           .value();
     }
 
-    isEmptyCurrentSymbols() {
-        return Object.values(this.currentSymbols).length === 0;
-    }
-
     getFlatLines() {
         const lines = {};
         for (let y in this.lineSymbols) {
-            lines[y] = Object.values(this.lineSymbols[y]).join('');
+            lines[y] = Object.values(this.lineSymbols[y]).join(' ');
         }
         return lines;
     }

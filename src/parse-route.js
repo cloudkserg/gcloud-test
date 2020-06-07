@@ -18,15 +18,15 @@ function base64Image(src) {
 
 module.exports = async (req, res, next) => {
     let resultJson;
-    // const image = __dirname + '../uploads/image2.jpg';
-    // resultJson = require('./test997');
+    //const image = __dirname + '../uploads/image2.jpg';
+    // resultJson = require('./test710');
 
     const image = req.file.path;
     try {
          const processor = new GoogleProcessor();
          resultJson = await processor.parseImage(image);
          // fs.writeFileSync(
-         //     __dirname + '/test997.json',
+         //     __dirname + '/test710.json',
          //     JSON.stringify(resultJson)
          // );
      } catch (err) {

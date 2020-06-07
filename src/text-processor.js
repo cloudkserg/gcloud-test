@@ -23,6 +23,7 @@ module.exports =  class TextProcessor {
     }
 
     getMaxDiffForY(y, x) {
+        return MAX_DIFFS_IN_X;
         if (!this.widths[y]) {
             return MAX_DIFFS_IN_X;
         }
@@ -182,8 +183,8 @@ module.exports =  class TextProcessor {
             const a = 'g';
         }
         let nearestX = this.findNearestX(line, x, y, x => this.isNumber(x));
-        const char = line[nearestX];
-        if (isNaN(parseInt(char))) {
+        const char = this.pointToPoint(line[nearestX]);
+        if (isNaN(parseFloat(char))) {
             return NaN;
         }
         if (!this.isStartNumber(line, nearestX, y)) {
@@ -192,17 +193,17 @@ module.exports =  class TextProcessor {
 
         let price = char;
         let currentX = this.getNextX(line, nearestX);
-        if (!currentX || isNaN(parseInt(price))) {
+        if (!currentX || isNaN(parseFloat(price))) {
             return price;
         }
 
-        let priceHasPoint = false;
+        let priceHasPoint = this.hasPointInEnd(price);
 
         while(true) {
             if (!currentX) {
                 break;
             }
-            const nextChar = line[currentX];
+            const nextChar = this.pointToPoint(line[currentX]);
             if (nextChar === null) {
                 break;
             }
@@ -235,12 +236,12 @@ module.exports =  class TextProcessor {
                 // }
                 // currentX = this.getNextX(line, currentX);
                 // continue;
-            } else if (isNaN(parseInt(nextChar))) {
+            } else if (isNaN(parseFloat(nextChar))) {
                 break;
-            } else if (!isNaN(parseInt(nextChar))) {
+            } else if (!isNaN(parseFloat(nextChar))) {
                 price += nextChar;
             }
-
+            price = this.pointToPoint(price);
             const nextX = this.getNextX(line, currentX);
             if (this.hasTwoDigitsAfter(price) && !this.isCLosedToPreviousSymbol(line, nextX, y))  {
                 break;
@@ -248,7 +249,7 @@ module.exports =  class TextProcessor {
 
             currentX = this.getNextX(line, currentX);
         }
-        if (y  == '858') {
+        if (y  == '870') {
             const a = 'g';
         }
         if (!this.isPrice(price)) {
@@ -256,6 +257,19 @@ module.exports =  class TextProcessor {
         }
 
         return toFloat ? parseFloat(price) : price;
+    }
+
+    pointToPoint(currentPrice) {
+        if (!currentPrice) {
+            return null;
+        }
+        let pr = currentPrice
+            .replace(/[^\d,\.]/g, "")
+            .replace(/(\d),(\d)/g, "$1.$2");
+        if (this.hasOneDigitsAfter(pr)) {
+            pr =  '' + pr + '0';
+        }
+        return pr;
     }
 
     nextLineHasStartPriceOnPosition (nextLine, startPricePosition, y) {
@@ -276,12 +290,15 @@ module.exports =  class TextProcessor {
         let currentNumberPosition = null;
         for (const x in line) {
             const curChar = line[x];
-            const isDigit = !isNaN(parseInt(curChar));
+            const isDigit = !isNaN(parseFloat(curChar));
             const isPoint = curChar === '.' || curChar === ',';
             const isSpace = curChar === ' ';
             const isChar = !isDigit && !isPoint && !isSpace;
             if (!this.isCLosedToPreviousSymbol(line, x, y) && this.isPrice(currentPrice)) {
                 pricePositions.push(currentNumberPosition);
+                currentNumberPosition = null;
+            }
+            if (!this.isCLosedToPreviousSymbol(line, x, y) && !this.hasPointInEnd(currentPrice)) {
                 currentNumberPosition = null;
             }
             if (isChar) {
@@ -295,10 +312,10 @@ module.exports =  class TextProcessor {
             if (isDigit) {
                 if (!currentNumberPosition) {
                     currentNumberPosition = x;
-                    currentPrice = curChar;
+                    currentPrice = this.pointToPoint(curChar);
                     continue;
                 } else {
-                    currentPrice += curChar;
+                    currentPrice = this.pointToPoint(currentPrice + curChar);
                     continue;
                 }
             }
@@ -335,7 +352,7 @@ module.exports =  class TextProcessor {
         if (!price) {
             return false;
         }
-        return price.substr(-1, 1) == '.';
+        return price.substr(-1, 1) == '.' || price.substr(-1, 1) == ',';
     }
 
     getSecondNextLine(y) {
@@ -419,10 +436,11 @@ module.exports =  class TextProcessor {
         }
         const prevX = this.getPrevX(line, x);
         const prevChar = line[prevX];
+        const endCurrentX = parseInt(x) + parseInt(this.widths[y][x]);
         if (!prevX || prevChar == ' ') {
             return false;
         }
-        return parseInt(x) - parseInt(prevX) <= this.getMaxDiffForY(y, x);
+        return parseInt(endCurrentX) - parseInt(prevX) <= this.getMaxDiffForY(y, x);
     }
 
     getNextX(line, x) {
@@ -513,6 +531,11 @@ module.exports =  class TextProcessor {
     hasTwoDigitsAfter(priceStr) {
         const priceAfter = priceStr.split('.');
         return priceAfter && priceAfter.length > 1 && priceAfter[1].length == 2;
+    }
+
+    hasOneDigitsAfter(priceStr) {
+        const priceAfter = priceStr.split('.');
+        return priceAfter && priceAfter[1] && priceAfter[1].length == 1;
     }
 
     hasTwoOrMoreDigitsAfter(priceStr) {
@@ -891,7 +914,7 @@ module.exports =  class TextProcessor {
 
         const xKeys = Object.keys(line);
         let xIndex = xKeys.indexOf(nearestPriceX.toString());
-        for (let i = 0; i < xIndex; i++) {
+        for (let i = 0; i <= xIndex; i++) {
             const x = parseInt(xKeys[i]);
             const char = line[x];
             if (x > endedCountX || x < nearestCountX) {
@@ -948,13 +971,13 @@ module.exports =  class TextProcessor {
             }
             const line = this.lineSymbols[y];
             //
-            if (y  == '401') {
+            if (y  == '833') {
                 const a = 'g';
             }
             const numberPositions = this.getPricePositionsForLine(y, true);
             const intNumberPositions = _.map(numberPositions, numberPosition => parseInt(numberPosition.pricePosition));
             const maxNumberPosition = _.max(intNumberPositions);
-            if (maxNumberPosition < pricePosition && pricePosition - maxNumberPosition  > MAX_DIFFS_IN_X) {
+            if (maxNumberPosition < pricePosition && pricePosition - maxNumberPosition  > MAX_DIFFS_IN_X + 30) {
                 continue;
             }
             const price = this.getPriceFromPosition(line, maxNumberPosition, y);
