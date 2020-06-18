@@ -998,7 +998,7 @@ module.exports =  class TextProcessor {
 
             items.push({
                 price,
-                count,
+                count: 1,
                 text
             })
         }
