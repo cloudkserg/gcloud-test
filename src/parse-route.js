@@ -1,5 +1,6 @@
 const TextProcessor = require("./text-processor"),
-    LineProcessor = require('./line-processor');
+    LineProcessor = require('./line-processor'),
+    TryRecordService = require('./try-record-service');
 
 const fs = require('fs'),
     util = require('util'),
@@ -52,6 +53,8 @@ module.exports = async (req, res, next) => {
         transformations: lineProcessor.transformations,
         superDebug: lineProcessor.debug
     };
+    const tryRecordService = new TryRecordService();
+    await tryRecordService.addRecord(req.file.path, text.totalPrice, text.items, resultJson);
     res.json(result);
     // try {
     //     const processor = new GoogleProcessor();

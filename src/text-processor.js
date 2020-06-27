@@ -3,6 +3,8 @@ String.prototype.replaceAll = function(search, replacement) {
     return target.replace(new RegExp(search, 'g'), replacement);
 };
 
+const TotalWord = require('../models/TotalWord');
+const StopWord = require('../models/StopWord');
 const _ = require('lodash');
 const MAX_DIFFS_IN_X = 20;
 const DIFFS_IN_X = 15;
@@ -20,6 +22,27 @@ module.exports =  class TextProcessor {
         this.savedPositions = null;
         this.savePositionOnY = 0;
         this.priceCalculations = null;
+    }
+
+    async initWords() {
+        // const totalWords = [
+        //     'Bar',
+        //     'offen',
+        //     'К оплате',
+        //     'Total',
+        //     'Tatal', //may be synonim of Total
+        //     'Karte',
+        //     'Sunne',
+        //     'Summe', //may be synonim of Symme
+        //     'Итого',
+        //     'Всего',
+        //     'Bcero',
+        //     'Сумма'
+        // ];
+        this.totalWords = await TotalWord.findAll();
+        this.totalWords = this.totalWords.map(totalWord = totalWord.name);
+        this.stopWords = await StopWord.findAll();
+        this.stopWords = this.totalWords.map(totalWord = stopWord.name);
     }
 
     getMaxDiffForY(y, x) {
@@ -179,9 +202,9 @@ module.exports =  class TextProcessor {
     }
 
     getPriceFromPosition (line, x, y, toFloat = true, asTotal = false) {
-        if (y  == '332') {
-            const a = 'g';
-        }
+        // if (y  == '332') {
+        //     const a = 'g';
+        // }
         let nearestX = this.findNearestX(line, x, y, x => this.isNumber(x));
         const char = this.pointToPoint(line[nearestX]);
         if (isNaN(parseFloat(char))) {
@@ -491,21 +514,7 @@ module.exports =  class TextProcessor {
 
 
     hasTotalWord(line) {
-        const totalWords = [
-            'Bar',
-            'offen',
-            'К оплате',
-            'Total',
-            'Tatal', //may be synonim of Total
-            'Karte',
-            'Sunne',
-            'Summe', //may be synonim of Symme
-            'Итого',
-            'Всего',
-            'Bcero',
-            'Сумма'
-        ];
-        return _.some(totalWords, totalWord => {
+        return _.some(this.totalWords, totalWord => {
             return _.includes(_.lowerCase(line), _.lowerCase(totalWord));
         });
     }
@@ -957,6 +966,13 @@ module.exports =  class TextProcessor {
         return (textAfter.length > textBefore.length) ? textAfter : textBefore;
     }
 
+    hasStopWord(line) {
+        const lineString = Object.values(line).join('');
+        return _.some(this.stopWords, stopWord => {
+            return _.includes(_.lowerCase(lineString), _.lowerCase(stopWord));
+        });
+    }
+
     getItems (pricePosition, countPosition, startY, endY, totalPrice) {
         const items = [];
         for (const y in this.lineSymbols) {
@@ -970,10 +986,13 @@ module.exports =  class TextProcessor {
                 continue;
             }
             const line = this.lineSymbols[y];
-            //
-            if (y  == '833') {
-                const a = 'g';
+            if (this.hasStopWord(line)) {
+                continue;
             }
+            //
+            // if (y  == '833') {
+            //     const a = 'g';
+            // }
             const numberPositions = this.getPricePositionsForLine(y, true);
             const intNumberPositions = _.map(numberPositions, numberPosition => parseInt(numberPosition.pricePosition));
             const maxNumberPosition = _.max(intNumberPositions);

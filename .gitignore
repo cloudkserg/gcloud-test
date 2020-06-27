@@ -1,42 +1,25 @@
-# Logs
-*.log
-logs
-logs/*
-
-#Build assets
-dist
-
 # Dependency directory
 node_modules
-!src/node_modules
-!tests/node_modules
 
 # Debug log from npm
 npm-debug.log
-key.json
 
 # Intellij Idea files
 .idea
 *.iml
 .vscode
 
-# Doc
-doc/*
+#google key
+key.json
 
 # Uploads
 uploads
 uploads/*
 
-# Sqitch
-database_files/sqitch.conf
 *.DS_Store
-
-*.rdb
-
-!gulpfile.js
-!gulpfile.js/**/*.*
 
 .env
 
-# Scratch Folder for Tests
-tests/scratch
+database.sqlite
+
+

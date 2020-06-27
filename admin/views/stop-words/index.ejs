@@ -1,0 +1,29 @@
+<% layout('/layout/index') -%>
+<div class="row">
+    <h2>Stop words</h2>
+</div>
+<div class="row">
+<table  class="table table-striped table-bordered">
+    <thead>
+    <th>Name</th>
+    <th>Delete</th>
+    </thead>
+    <% for (const word of words) { %>
+    <tr>
+        <td><%- word.name %></td>
+        <td>
+            <form method="POST" action="/admin/stop-words/delete">
+                <input type="hidden" name="id" value="<%- word.id %>" />
+                <input type="submit" value="Delete" class="btn btn-success" />
+            </form>
+        </td>
+    </tr>
+    <% } %>
+</table>
+</div>
+<div class="row">
+    <form method="POST" action="/admin/stop-words">
+        <input name="name" />
+        <input type="submit" value="Create" class="btn btn-success" />
+    </form>
+</div>
