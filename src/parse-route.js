@@ -43,6 +43,7 @@ module.exports = async (req, res, next) => {
     const lineSymbols = lineProcessor.lineSymbols;
 
     const textProcessor = new TextProcessor(lineSymbols, lines, widhts);
+    await textProcessor.initWords();
     const text = textProcessor.processText();
     const result = {
         path: image, rows: text.items, totalPrice: text.totalPrice,

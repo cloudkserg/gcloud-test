@@ -40,9 +40,10 @@ module.exports =  class TextProcessor {
         //     'Сумма'
         // ];
         this.totalWords = await TotalWord.findAll();
-        this.totalWords = this.totalWords.map(totalWord = totalWord.name);
+        this.totalWords = this.totalWords.map(totalWord => totalWord.name);
         this.stopWords = await StopWord.findAll();
-        this.stopWords = this.totalWords.map(totalWord = stopWord.name);
+        this.stopWords = this.stopWords.map(stopWord => stopWord.name);
+        console.log(this.totalWords, this.stopWords);
     }
 
     getMaxDiffForY(y, x) {
