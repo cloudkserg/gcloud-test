@@ -6,6 +6,7 @@
 <table  class="table table-striped table-bordered">
     <thead>
     <th>ID</th>
+    <td>Speed</td>
     <th>Date</th>
     <th>Image</th>
     <th>Total</th>
@@ -16,6 +17,7 @@
     <% for (const item of items) { %>
     <tr>
 	<td><%- item.id %></td>
+        <td><%- item.speed/1000 %> Google: <%- item.google_speed/1000 %></td>
         <td><%- item.createdAt.toDateString() %> <%- item.createdAt.toLocaleTimeString() %></td>
         <td><img src="<%- getPublicPath(item.file) -%>" width="200" /></td>
         <td><%- item.total %></td>

@@ -10,6 +10,12 @@ TryRecord.init({
     file: {
         type: DataTypes.STRING,
     },
+    speed: {
+      type: DataTypes.NUMBER,
+    },
+    google_speed: {
+        type: DataTypes.NUMBER,
+    },
     total: {
         type: DataTypes.STRING
     },

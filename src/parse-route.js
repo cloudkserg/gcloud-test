@@ -1,5 +1,6 @@
 const TextProcessor = require("./text-processor"),
     LineProcessor = require('./line-processor'),
+    process = require('process'),
     TryRecordService = require('./try-record-service');
 
 const fs = require('fs'),
@@ -18,15 +19,18 @@ function base64Image(src) {
 
 
 module.exports = async (req, res, next) => {
+    const timeStart = new Date();
     let resultJson;
     //const image = __dirname + '../uploads/image2.jpg';
     // resultJson = require('./test710');
 
     const image = req.file.path;
+    let googleTime;
     try {
          const processor = new GoogleProcessor();
          resultJson = await processor.parseImage(image);
-         // fs.writeFileSync(
+        googleTime = new Date() - timeStart;
+        // fs.writeFileSync(
          //     __dirname + '/test710.json',
          //     JSON.stringify(resultJson)
          // );
@@ -55,7 +59,8 @@ module.exports = async (req, res, next) => {
         superDebug: lineProcessor.debug
     };
     const tryRecordService = new TryRecordService();
-    await tryRecordService.addRecord(req.file.path, text.totalPrice, text.items, resultJson);
+    const time = new Date() - timeStart;
+    await tryRecordService.addRecord(req.file.path, text.totalPrice, text.items, resultJson, time, googleTime);
     res.json(result);
     // try {
     //     const processor = new GoogleProcessor();

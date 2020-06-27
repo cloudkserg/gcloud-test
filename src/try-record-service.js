@@ -3,13 +3,15 @@ const fs = require('fs');
 const path = require('path');
 module.exports = class TryRecordService {
 
-    async addRecord(filepath, total, rows, googleJson) {
+    async addRecord(filepath, total, rows, googleJson, speed, google_speed) {
         const file = path.basename(filepath);
         //this.saveImage(filepath, file);
         await TryRecord.create({
             file,
             total,
-	    result: false,
+            speed,
+            google_speed,
+	        result: false,
             rows: JSON.stringify(rows),
             json: JSON.stringify(googleJson)
         });

@@ -4,6 +4,6 @@ const TryRecord = require('../models/TryRecord');
 const main = async () => {
     await StopWord.sync();
     await TotalWord.sync();
-    await TryRecord.sync()
+    await TryRecord.sync({ force: true });
 };
 module.exports = main();
