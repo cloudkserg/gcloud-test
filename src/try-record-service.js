@@ -9,6 +9,7 @@ module.exports = class TryRecordService {
         await TryRecord.create({
             file,
             total,
+	    result: false,
             rows: JSON.stringify(rows),
             json: JSON.stringify(googleJson)
         });
