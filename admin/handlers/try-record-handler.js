@@ -26,7 +26,7 @@ module.exports = {
                 if (!rowsString) {
                     return 0;
                 }
-                return rowsString.reduce((sum, price) => {
+                return rowsString.reduce((sum, row) => {
                     return sum + parseFloat(row.price);
                 }, 0);
             }
