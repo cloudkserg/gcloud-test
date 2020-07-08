@@ -28,6 +28,10 @@
                     <th>Price</th>
                 </thead>
                 <%- formatRows(item.rows) %>
+                <tr>
+                    <td>Sum</td>
+                    <td><%- formatTotalRows(item.rows) %></td>
+                </tr>
             </table>
         </td>
         <td>

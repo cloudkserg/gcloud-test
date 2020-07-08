@@ -20,6 +20,15 @@ module.exports = {
                         '<td>' + row.price + '</td>' +
                     '</tr>';
                 });
+            },
+            formatTotalRows: (rows) => {
+                const rowsString = JSON.parse(rows);
+                if (!rowsString) {
+                    return 0;
+                }
+                return rowsString.reduce((sum, price) => {
+                    return sum + parseFloat(row.price);
+                }, 0);
             }
         });
     },
