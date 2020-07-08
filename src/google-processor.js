@@ -46,13 +46,12 @@ module.exports = class GoogleProcessor {
             client.textDetection(image, function (err, result) {
                 if (err) {
                     console.error(err);
-                    throw new Error(err);
+                    return res(null, err);
                 }
                 return res(result);
             });
         });
 
-        if (!result.textAnnotations || !result.textAnnotations)
         if (!result.fullTextAnnotation || !result.fullTextAnnotation.pages) {
             console.error(result);
             throw new Error(result);

@@ -22,13 +22,13 @@ module.exports = async (req, res, next) => {
     const timeStart = new Date();
     let resultJson;
     //const image = __dirname + '../uploads/image2.jpg';
-    // resultJson = require('./test710');
+    //resultJson = [require(__dirname + '/../tests/json/test831.json')];
 
     const image = req.file.path;
     let googleTime;
     try {
-         const processor = new GoogleProcessor();
-         resultJson = await processor.parseImage(image);
+        const processor = new GoogleProcessor();
+        resultJson = await processor.parseImage(image);
         googleTime = new Date() - timeStart;
         // fs.writeFileSync(
          //     __dirname + '/test710.json',
@@ -40,15 +40,25 @@ module.exports = async (req, res, next) => {
          return;
      }
 
-
     const lineProcessor = new LineProcessor();
-    const lines = lineProcessor.getLines(resultJson);
-    const widhts = lineProcessor.getWidths();
-    const lineSymbols = lineProcessor.lineSymbols;
+    let textProcessor;
+    let text;
+    let lines;
+    try {
 
-    const textProcessor = new TextProcessor(lineSymbols, lines, widhts);
-    await textProcessor.initWords();
-    const text = textProcessor.processText();
+        lines = lineProcessor.getLines(resultJson);
+        const widhts = lineProcessor.getWidths();
+        const lineSymbols = lineProcessor.lineSymbols;
+
+        textProcessor = new TextProcessor(lineSymbols, lines, widhts);
+        await textProcessor.initWords();
+        text = textProcessor.processText();
+
+    } catch (err) {
+        console.error(err);
+        res.end('Error in parsing text: ' + err.toString());
+        return;
+    }
     const result = {
         path: image, rows: text.items, totalPrice: text.totalPrice,
         priceCalculations: textProcessor.priceCalculations,

@@ -11,6 +11,9 @@ module.exports = {
             getPublicPath: (name) => TryRecordService.getPublicPath(name),
             formatRows: (rows) => {
                 const rowsString = JSON.parse(rows);
+                if (!rowsString) {
+                    return '';
+                }
                 return rowsString.map(row => {
                     return '<tr>' +
                         '<td>' + row.text + '</td>' +
