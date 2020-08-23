@@ -19,8 +19,19 @@
 	<td><%- item.id %></td>
         <td><%- item.speed/1000 %> Google: <%- item.google_speed/1000 %></td>
         <td><%- item.createdAt.toDateString() %> <%- item.createdAt.toLocaleTimeString() %></td>
-        <td><img src="<%- getPublicPath(item.file) -%>" width="200" /></td>
-        <td><%- item.total %></td>
+        <td>
+            <img src="<%- getPublicPath(item.file) -%>" width="200" />
+            <a href="<%- getPublicPath(item.file) -%>" download>
+            <button class="btn btn-success">
+                Download
+            </button>
+            </a>
+        </td>
+        <td class="
+                        <% if (isNotTotalRows(item.total, item.rows)) { %>
+                            error
+                        <% } %>
+                    "><%- item.total %></td>
         <td>
             <table>
                 <thead>
@@ -30,7 +41,11 @@
                 <%- formatRows(item.rows) %>
                 <tr>
                     <td>Sum</td>
-                    <td><%- formatTotalRows(item.rows) %></td>
+                    <td class="
+                        <% if (isNotTotalRows(item.total, item.rows)) { %>
+                            error
+                        <% } %>
+                    "><%- formatTotalRows(item.rows) %></td>
                 </tr>
             </table>
         </td>
@@ -50,5 +65,29 @@
     </tr>
     <% } %>
 </table>
+<div>
+    <div>Paging:</div>
+    <div>
+    <% for (const page of pages) { %>
+        <span>
+            <% if (page-1 != currentPage)  { %>
+                <a href="?page=<%- page %>">
+            <% } %>
+
+            <%- page %>
+
+            <% if (page-1 != currentPage)  { %>
+                </a>
+            <% } %>
+        </span>
+    <% } %>
+    </div>
 </div>
+</div>
+<style>
+    .error {
+        color: red;
+        border-color: red;
+    }
+</style>
 
