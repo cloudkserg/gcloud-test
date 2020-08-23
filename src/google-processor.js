@@ -17,8 +17,8 @@ module.exports = class GoogleProcessor {
         const result = await new Promise((res, err) => {
             client.textDetection(image, function (err, result) {
                 if (err) {
-                    console.error(err);
-                    throw new Error(err);
+		    console.log(error);
+                    return res(null, error);
                 }
                 return res(result);
             });
