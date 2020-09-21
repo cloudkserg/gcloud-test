@@ -20,6 +20,7 @@ module.exports =  class TextProcessor {
         this.lines = lines;
         this.widths = widths;
         this.savedPositions = null;
+        this.usePointInPrices = true;
         this.savePositionOnY = 0;
         this.priceCalculations = null;
     }
@@ -43,8 +44,7 @@ module.exports =  class TextProcessor {
         this.totalWords = this.totalWords.map(totalWord => totalWord.name);
         this.stopWords = await StopWord.findAll();
         this.stopWords = this.stopWords.map(stopWord => stopWord.name);
-        this.totalWords.each(totalWord => this.stopWords.push(totalWord));
-        console.log(this.totalWords, this.stopWords);
+        this.totalWords.map(totalWord => this.stopWords.push(totalWord));
     }
 
     getMaxDiffForY(y, x) {
@@ -209,6 +209,9 @@ module.exports =  class TextProcessor {
         // }
         let nearestX = this.findNearestX(line, x, y, x => this.isNumber(x));
         const char = this.pointToPoint(line[nearestX]);
+        if (this.isDate(char)) {
+            return NaN;
+        }
         if (isNaN(parseFloat(char))) {
             return NaN;
         }
@@ -377,6 +380,9 @@ module.exports =  class TextProcessor {
         if (!price) {
             return false;
         }
+        if (!this.usePointInPrices) {
+            return true;
+        }
         return price.substr(-1, 1) == '.' || price.substr(-1, 1) == ',';
     }
 
@@ -517,7 +523,11 @@ module.exports =  class TextProcessor {
 
     hasTotalWord(line) {
         return _.some(this.totalWords, totalWord => {
-            return _.includes(_.lowerCase(line), _.lowerCase(totalWord));
+            const result = _.includes(_.lowerCase(line), _.lowerCase(totalWord));
+            if (result) return true;
+            //for example all english o replace to russian o
+            const replaceLine = _.replace(_.lowerCase(line), 'о', 'o');
+            return _.includes(replaceLine, _.lowerCase(totalWord));
         });
     }
 
@@ -535,6 +545,9 @@ module.exports =  class TextProcessor {
         const price = parseFloat(priceStr);
         if (isNaN(price)) {
             return false;
+        }
+        if (!this.usePointInPrices) {
+            return true;
         }
         return this.hasPointInMedium(priceStr) && this.hasTwoDigitsAfter(priceStr);
     }
@@ -755,7 +768,7 @@ module.exports =  class TextProcessor {
             if (!priceStr) {
                 continue;
             }
-            if (priceStr.match(priceMatch) === null) {
+            if (this.usePointInPrices && priceStr.match(priceMatch) === null) {
                 continue;
             }
             const price = parseFloat(priceStr);
@@ -975,6 +988,11 @@ module.exports =  class TextProcessor {
         });
     }
 
+    isDate(priceString) {
+        const re = new RegExp('\\d{2}.\\d{2}.\\d{4}');
+        return re.test(priceString);
+    }
+
     getItems (pricePosition, countPosition, startY, endY, totalPrice) {
         const items = [];
         for (const y in this.lineSymbols) {
@@ -998,11 +1016,11 @@ module.exports =  class TextProcessor {
             const numberPositions = this.getPricePositionsForLine(y, true);
             const intNumberPositions = _.map(numberPositions, numberPosition => parseInt(numberPosition.pricePosition));
             const maxNumberPosition = _.max(intNumberPositions);
-            if (maxNumberPosition < pricePosition && pricePosition - maxNumberPosition  > MAX_DIFFS_IN_X + 30) {
+            if (maxNumberPosition < pricePosition && pricePosition - maxNumberPosition  > MAX_DIFFS_IN_X + 130) {
                 continue;
             }
             const price = this.getPriceFromPosition(line, maxNumberPosition, y);
-            if (!price) {
+            if (!price || this.isDate(price)) {
                 // если разница между текущей строчкой и предудущей строкой = 1 - соединяем их
                 // this.joinCurrentRowWithNext(y);
                 continue;
@@ -1026,7 +1044,24 @@ module.exports =  class TextProcessor {
         return items;
     }
 
+    hasPointInMediumInLines() {
+        for (const y in this.lineSymbols) {
+            const line = this.lineSymbols[y];
+            if (this.hasStopWord(line)) {
+                continue;
+            }
+            const numberPositions = this.getPricePositionsForLine(y, true);
+            if (numberPositions.length > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     processText() {
+        if (!this.hasPointInMediumInLines()) {
+            this.usePointInPrices = false;
+        }
         const totalPrice = this.getTotalPrice();
 
         const {pricePosition, countPosition, startY, endY} = this.getPricePosition(totalPrice);

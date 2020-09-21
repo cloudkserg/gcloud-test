@@ -7,6 +7,8 @@ module.exports = class LineProcessor {
     constructor () {
         this.lineSymbols = {};
         this.startYs = {};
+        this.startXs = {};
+        this.tiltForEndYs = {};
         this.debug = {};
         this.transformations = {};
         this.widths = {};
@@ -83,11 +85,23 @@ module.exports = class LineProcessor {
         return null;
     }
 
+    calculateTiltForDiff(endY, x) {
+        const xDiff = x - this.startXs[endY];
+        const tilt = xDiff * this.tiltForEndYs[endY];
+        if (tilt > 200) {
+            return 0;
+        }
+        return tilt;
+    }
 
-    findYWithDiff(startY, endY) {
+
+    findYWithDiff(startYWithTilt, endYWithTilt, currentX) {
         let maxCrossPoints = 0;
         let savedPrevEndY = null;
         for (let prevEndY in this.startYs) {
+            const tiltForDiff = this.calculateTiltForDiff(prevEndY, currentX);
+            const endY = endYWithTilt - tiltForDiff;
+            const startY = startYWithTilt - tiltForDiff;
             let prevStartY = parseInt(this.startYs[prevEndY]);
             prevEndY = parseInt(prevEndY);
 
@@ -106,8 +120,8 @@ module.exports = class LineProcessor {
     }
 
 
-    findNearestY (startY, endY, width) {
-        const yWithDiff = this.findYWithDiff(startY, endY);
+    findNearestY (startY, endY, startX) {
+        const yWithDiff = this.findYWithDiff(startY, endY, startX);
         if (yWithDiff) {
             return yWithDiff;
         }
@@ -166,9 +180,16 @@ module.exports = class LineProcessor {
         const verticeStart = vertices[0];
         const startY = verticeStart.y;
         this.startYs[endY] =  startY;
+        this.startXs[endY] = vertices[0].x;
+        this.tiltForEndYs[endY] = this.calculateTiltForOneX(vertices);
 
         return endY;
     }
+
+    calculateTiltForOneX(vertices) {
+        return (vertices[1].y - vertices[0].y) / (vertices[1].x - vertices[0].x);
+    }
+
 
     saveNewCurrentWidths(endY, currentWidths) {
         this.widths[endY] = currentWidths;
@@ -209,16 +230,6 @@ module.exports = class LineProcessor {
         return newEndY;
     }
 
-    updateStartYForCurrentLine(newEndY, oldEndY, newStartY) {
-        const oldStartY = this.startYs[oldEndY];
-         let updatedY = oldStartY;
-         if (newStartY < oldStartY) {
-             updatedY = newStartY;
-         }
-        delete this.startYs[oldEndY];
-        this.startYs[newEndY] = updatedY;
-    }
-
     updateCurrentLine (vertices, nearestLine, findedY) {
         const vertice = vertices[2];
         const endY = vertice.y;
@@ -253,24 +264,44 @@ module.exports = class LineProcessor {
              );
     }
 
+    getMaxY(vertices, tilt = 0) {
+        return _.max(vertices.map(vertice => parseInt(vertice.y))) + (-tilt);
+    }
+
+    getMinY(vertices, tilt = 0) {
+        return _.min(vertices.map(vertice => parseInt(vertice.y))) + (-tilt);
+    }
+
+    getMinX(vertices) {
+        return _.min(vertices.map(vertice => parseInt(vertice.x)));
+    }
+
+    getMaxX(vertices) {
+        return _.max(vertices.map(vertice => parseInt(vertice.x)));
+    }
+
+    getTilt(vertices) {
+        return vertices[1].y - vertices[0].y;
+    }
+
     finishCurrentLine (text, width, vertices) {
-        const vertice = vertices[2];
-        const endY = vertice.y;
-        const verticeStart = vertices[0];
-        const startY = verticeStart.y;
+
+        const startY = this.getMinY(vertices);
+        const endY = this.getMaxY(vertices);
+        const endX = this.getMaxX(vertices);
 
         const currentSymbols = {};
-        currentSymbols[vertice.x] = text;
+        currentSymbols[endX] = text;
         const currentWidths = {};
-        currentWidths[vertice.x] = width;
+        currentWidths[endX] = width;
 
 
-        const findedY = this.findNearestY(startY, endY, this.getWidth(vertices));
+        const findedY = this.findNearestY(startY, endY, vertices[0].x);
         if (findedY) {
             let nearestLine = this.lineSymbols[findedY];
             let nearestWidths = this.widths[findedY];
 
-            currentSymbols[vertice.x] = ' ' + text;
+            currentSymbols[endX] = ' ' + text;
             const {nearestLine: newNearestLine, nearestWidths: newNearestWidths} = this.addSymbolsToNearestLine(
                 nearestLine, nearestWidths,
                 currentSymbols, currentWidths,
@@ -321,15 +352,8 @@ module.exports = class LineProcessor {
 
     getLines(segments) {
       segments.forEach(segment => {
-          const verticeTop = segment.boundingPoly.vertices[0];
-          const verticeDown = segment.boundingPoly.vertices[3];
-
-          const endY = verticeDown.y;
-          const endX = verticeDown.x;
           const width = this.getWidth(segment.boundingPoly.vertices);
           this.finishCurrentLine(segment.description, width, segment.boundingPoly.vertices);
-
-
       });
 
       return _.chain(this.getFlatLines())
