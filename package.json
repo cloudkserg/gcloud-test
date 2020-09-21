@@ -35,7 +35,6 @@
     "postcss-loader": "^3.0.0",
     "sass-loader": "^8.0.2",
     "sequelize": "^6.2.1",
-    "sqlite3": "^4.2.0",
     "util": "^0.12.1",
     "vue": "^2.6.11",
     "vue-loader": "^15.8.3",
@@ -47,6 +46,7 @@
   },
   "devDependencies": {
     "chai": "^4.2.0",
-    "mocha": "^7.0.1"
+    "mocha": "^7.0.1",
+    "sqlite3": "^4.2.0"
   }
 }
