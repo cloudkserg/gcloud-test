@@ -995,6 +995,7 @@ module.exports =  class TextProcessor {
 
     getItems (pricePosition, countPosition, startY, endY, totalPrice) {
         const items = [];
+        pricePosition = parseInt(pricePosition);
         for (const y in this.lineSymbols) {
             // if (y < startY || y > endY) {
             //     continue;
