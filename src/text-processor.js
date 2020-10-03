@@ -44,7 +44,7 @@ module.exports =  class TextProcessor {
         this.totalWords = this.totalWords.map(totalWord => totalWord.name);
         this.stopWords = await StopWord.findAll();
         this.stopWords = this.stopWords.map(stopWord => stopWord.name);
-        this.totalWords.map(totalWord => this.stopWords.push(totalWord));
+        //this.totalWords.map(totalWord => this.stopWords.push(totalWord));
     }
 
     getMaxDiffForY(y, x) {
