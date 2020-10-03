@@ -984,7 +984,7 @@ module.exports =  class TextProcessor {
     hasStopWord(line) {
         const lineString = Object.values(line).join('');
         return _.some(this.stopWords, stopWord => {
-            return _.includes(_.lowerCase(lineString), _.lowerCase(stopWord));
+            return _.includes(_.lowerCase(lineString), ` ${_.lowerCase(stopWord)} `);
         });
     }
 
