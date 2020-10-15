@@ -15,15 +15,27 @@
 </head>
 <body>
 
-<div class="container pt-6" id="app">
-    <ul class="nav">
-        <li><a href="/admin/stop-words">Stop words</a></li>
-        <li><a href="/admin/total-words">Total words</a></li>
-        <li><a href="/admin/">Try records</a></li>
-    </ul>
+<div class="sticky d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom box-shadow">
+    <h5 class="my-0 mr-md-auto font-weight-normal">Admin for divide-account</h5>
+    <nav class="my-2 my-md-0 mr-md-3">
+        <a class="p-2 text-dark" href="/admin/stop-words">Stop words</a>
+        <a class="p-2 text-dark" href="admin/total-words">Total words</a>
+        <a class="p-2 text-dark" href="/admin/process-all-tests">Process all tests</a>
+        <a class="p-2 text-dark" href="/admin/">Try records</a>
+    </nav>
+    <a class="btn btn-outline-primary" href="/">Main page</a>
+</div>
+<div class="container">
     <%-body -%>
 </div>
+
 <style type="text/css">
+    .sticky {
+        position: sticky;
+        top: 0em;
+        margin-bottom: -2em;
+        padding-top: 2em;
+    }
     .network {
         border: 2px solid lightgray;
     }
@@ -38,5 +50,7 @@
 <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.15/lodash.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.2/axios.min.js"></script>
-
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
 </body>

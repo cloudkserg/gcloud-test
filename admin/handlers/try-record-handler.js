@@ -2,21 +2,41 @@ const TryRecord = require('../../models/TryRecord');
 const TryRecordService = require('../../src/try-record-service');
 const PAGE_SIZE = 10;
 const getPages = async () => {
-    const totalRows = await TryRecord.count();
-    let totalPages = parseInt(totalRows / PAGE_SIZE);
-    if (totalRows % PAGE_SIZE > 0) {
-        totalPages += 1;
+    const rowsCount = await TryRecord.count();
+    let pagesCount = parseInt(rowsCount / PAGE_SIZE);
+    if (rowsCount % PAGE_SIZE > 0) {
+        pagesCount += 1;
     }
-    return [...Array(totalPages).keys()].map(v => v+1);
+    const pages =  [...Array(pagesCount).keys()].map(v => v);
+    return pages;
 };
 const getTotalRows = (rows) => {
     const rowsString = JSON.parse(rows);
     if (!rowsString) {
         return 0;
     }
-    return rowsString.reduce((sum, row) => {
+    return parseFloat(rowsString.reduce((sum, row) => {
         return sum + parseFloat(row.price);
-    }, 0);
+    }, 0));
+};
+const formatTotalRows = (rows) => {
+    return rows.toFixed(2);
+};
+const formatRows = (rows) => {
+    const rowsString = JSON.parse(rows);
+    if (!rowsString) {
+        return '';
+    }
+    return rowsString.map(row => {
+        return '<tr>' +
+            '<td>' + row.text + '</td>' +
+            '<td>' + row.price + '</td>' +
+            '</tr>';
+    });
+};
+const isNotTotalRows = (total, rows) => {
+    const totalRows  = getTotalRows(rows);
+    return parseFloat(totalRows).toFixed(2) != parseFloat(total).toFixed(2);
 };
 module.exports = {
     index: async (req, res) => {
@@ -33,23 +53,10 @@ module.exports = {
             pages,
             currentPage,
             getPublicPath: (name) => TryRecordService.getPublicPath(name),
-            formatRows: (rows) => {
-                const rowsString = JSON.parse(rows);
-                if (!rowsString) {
-                    return '';
-                }
-                return rowsString.map(row => {
-                    return '<tr>' +
-                        '<td>' + row.text + '</td>' +
-                        '<td>' + row.price + '</td>' +
-                    '</tr>';
-                });
-            },
-            isNotTotalRows: (total, rows) => {
-              const totalRows  = getTotalRows(rows);
-              return totalRows != total;
-            },
-            formatTotalRows: getTotalRows
+            formatRows,
+            isNotTotalRows,
+            formatTotalRows: formatTotalRows,
+            getTotalRows: getTotalRows
         });
     },
     success: async (req, res) => {

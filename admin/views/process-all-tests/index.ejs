@@ -1,0 +1,27 @@
+<% layout('/layout/index') -%>
+<div class="row">
+    <h2>Process all tests</h2>
+</div>
+<% if (process) { %>
+    <div class="row">
+        <label>Process started: <%= formatDate(process.createdAt) %></label>
+    </div>
+    <% if (process.finishedAt) { %>
+    <div class="row">
+        <label>Process finished: <%= formatDate(process.finishedAt) %></label>
+    </div>
+    <% } %>
+    <div class="row">
+        <label>Count tests: <%= process.processedCount %>/<%= process.fullCount %> records</label>
+    </div>
+    <div class="row">
+        <label> Start from <%= process.startId %> record</label>
+    </div>
+<% } %>
+<div class="row">
+    <form method="POST" action="/admin/process-all-tests">
+        <input name="startId" value="<%= startId %>" />
+        <input name="fullCount" value="<%= fullCount %>" />
+        <input type="submit" value="StartProcess" class="btn btn-success" />
+    </form>
+</div>

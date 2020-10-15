@@ -3,88 +3,107 @@
     <h2>Try records</h2>
 </div>
 <div class="row">
-<table  class="table table-striped table-bordered">
-    <thead>
-    <th>ID</th>
-    <td>Speed</td>
-    <th>Date</th>
-    <th>Image</th>
-    <th>Total</th>
-    <th>Rows</th>
-    <th>Update</th>
-    <th>Delete</th>
-    </thead>
-    <% for (const item of items) { %>
-    <tr>
-	<td><%- item.id %></td>
-        <td><%- item.speed/1000 %> Google: <%- item.google_speed/1000 %></td>
-        <td><%- item.createdAt.toDateString() %> <%- item.createdAt.toLocaleTimeString() %></td>
-        <td>
-            <img src="<%- getPublicPath(item.file) -%>" width="200" />
-            <a href="<%- getPublicPath(item.file) -%>" download>
-            <button class="btn btn-success">
-                Download
-            </button>
-            </a>
-        </td>
-        <td class="
-                        <% if (isNotTotalRows(item.total, item.rows)) { %>
-                            error
-                        <% } %>
-                    "><%- item.total %></td>
-        <td>
-            <table>
-                <thead>
-                    <th>Text</th>
-                    <th>Price</th>
-                </thead>
-                <%- formatRows(item.rows) %>
-                <tr>
-                    <td>Sum</td>
-                    <td class="
-                        <% if (isNotTotalRows(item.total, item.rows)) { %>
-                            error
-                        <% } %>
-                    "><%- formatTotalRows(item.rows) %></td>
-                </tr>
-            </table>
-        </td>
-        <td>
-            <form method="POST" action="/admin/try-records/success">
-                <input type="hidden" name="id" value="<%- item.id %>" />
-                <input type="checkbox" name="result" value="1" <% if (item.result) { %> checked <% } %> />
-                <input type="submit" value="Save" class="btn btn-warning" />
-            </form>
-        </td>
-        <td>
-            <form method="POST" action="/admin/try-records/delete">
-                <input type="hidden" name="id" value="<%- item.id %>" />
-                <input type="submit" value="Delete" class="btn btn-danger" />
-            </form>
-        </td>
-    </tr>
-    <% } %>
-</table>
-<div>
-    <div>Paging:</div>
-    <div>
-    <% for (const page of pages) { %>
-        <span>
-            <% if (page-1 != currentPage)  { %>
-                <a href="?page=<%- page %>">
-            <% } %>
 
-            <%- page %>
+    <table  class="table table-striped table-bordered">
 
-            <% if (page-1 != currentPage)  { %>
-                </a>
+        <thead>
+            <th>ID</th>
+            <td>Speed</td>
+            <th>Date</th>
+            <th>Image</th>
+            <th>Total</th>
+            <th>Rows</th>
+            <th>Update</th>
+            <th>Delete</th>
+        </thead>
+
+        <% for (const item of items) { %>
+            <tr>
+                <td><%- item.id %></td>
+                <td><%- item.speed/1000 %> Google: <%- item.google_speed/1000 %></td>
+                <td><%- item.createdAt.toDateString() %> <%- item.createdAt.toLocaleTimeString() %></td>
+
+                <td>
+                    <img src="<%- getPublicPath(item.file) -%>" width="200" />
+                    <a href="<%- getPublicPath(item.file) -%>" download>
+                    <button class="btn btn-success">
+                        Download
+                    </button>
+                    </a>
+                </td>
+
+                <td class="<% if (isNotTotalRows(item.total, item.rows)) { %>error<% } %>">
+                    <%- item.total %>
+                </td>
+                <td>
+                    <p>
+                        <button
+                                class="btn btn-primary"
+                                type="button"
+                                data-toggle="collapse"
+                                data-target="#multiCollapseExample<%=item.id%>"
+                                aria-expanded="false"
+                                aria-controls="multiCollapseExample<%=item.id%>"
+                        >
+                            Toggle table
+                        </button>
+                    </p>
+                    <div class="collapse multi-collapse" id="multiCollapseExample<%=item.id%>">
+                        <table>
+                            <thead>
+                            <th>Text</th>
+                            <th>Price</th>
+                            </thead>
+                            <%- formatRows(item.rows) %>
+                            <tr>
+                                <td>Sum</td>
+                                <td class="<% if (isNotTotalRows(item.total, item.rows)) { %>error<% } %>">
+                                    <%= formatTotalRows(getTotalRows(item.rows)) %>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="<% if (isNotTotalRows(item.total, item.rows)) { %>error<% } %>">
+                        Total from table: <%= formatTotalRows(getTotalRows(item.rows)) %>
+                    </div>
+                </td>
+                <td>
+                    <form method="POST" action="/admin/try-records/success">
+                        <input type="hidden" name="id" value="<%- item.id %>" />
+                        <input type="checkbox" name="result" value="1" <% if (item.result) { %> checked <% } %> />
+                        <input type="submit" value="Save" class="btn btn-warning" />
+                    </form>
+                </td>
+                <td>
+                    <form method="POST" action="/admin/try-records/delete">
+                        <input type="hidden" name="id" value="<%- item.id %>" />
+                        <input type="submit" value="Delete" class="btn btn-danger" />
+                    </form>
+                </td>
+            </tr>
+        <% } %>
+    </table>
+
+    <nav aria-label="Page navigation example" class="all-width">
+        <ul class="pagination justify-content-center pagination-lg">
+            <% for (const page of pages) { %>
+                <li class="page-item  <% if (page === currentPage)  { %> active <% } %>">
+                    <a class="page-link" href="?page=<%- page %>">
+                        <%- +page+1 %>
+                        <% if (page === currentPage)  { %>
+                            <span class="sr-only">(current)</span>
+                        <% } %>
+                    </a>
+                </li>
             <% } %>
-        </span>
-    <% } %>
-    </div>
-</div>
+        </ul>
+    </nav>
+
 </div>
 <style>
+    .all-width {
+        width: 100%;
+    }
     .error {
         color: red;
         border-color: red;

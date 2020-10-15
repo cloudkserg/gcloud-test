@@ -4,7 +4,7 @@ const path = require('path');
 module.exports = class TryRecordService {
 
     async addRecord(filepath, total, rows, googleJson, speed, google_speed) {
-        const file = this.moveImage(filepath);
+        const file = this.copyImage(filepath);
         await TryRecord.create({
             file,
             total,
@@ -32,12 +32,12 @@ module.exports = class TryRecordService {
     //     return __dirname + '/../uploads/' +filepath;
     // }
     //
-    moveImage(filepath) {
+    copyImage(filepath) {
         const pathDir = path.dirname(filepath);
         const randNumber = this.getRandomInt(1000);
         const newFilepath = pathDir + '/' + Date.now() + '_' + randNumber +  '.jpg';
 
-        fs.renameSync(filepath, newFilepath);
+        fs.copyFileSync(filepath, newFilepath);
         return path.basename(newFilepath);
     }
 };
