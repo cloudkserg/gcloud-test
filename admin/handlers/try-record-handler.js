@@ -10,15 +10,7 @@ const getPages = async () => {
     const pages =  [...Array(pagesCount).keys()].map(v => v);
     return pages;
 };
-const getTotalRows = (rows) => {
-    const rowsString = JSON.parse(rows);
-    if (!rowsString) {
-        return 0;
-    }
-    return parseFloat(rowsString.reduce((sum, row) => {
-        return sum + parseFloat(row.price);
-    }, 0));
-};
+
 const formatTotalRows = (rows) => {
     return rows.toFixed(2);
 };
@@ -34,11 +26,22 @@ const formatRows = (rows) => {
             '</tr>';
     });
 };
+const getTotalRows = (rows) => {
+    const rowsString = JSON.parse(rows);
+    if (!rowsString) {
+        return 0;
+    }
+    return parseFloat(rowsString.reduce((sum, row) => {
+        return sum + parseFloat(row.price);
+    }, 0));
+};
 const isNotTotalRows = (total, rows) => {
     const totalRows  = getTotalRows(rows);
     return parseFloat(totalRows).toFixed(2) != parseFloat(total).toFixed(2);
 };
 module.exports = {
+    isNotTotalRows,
+    getTotalRows,
     index: async (req, res) => {
         const currentPage =  +(req.query.page || 0);
         const items = await TryRecord.findAll({

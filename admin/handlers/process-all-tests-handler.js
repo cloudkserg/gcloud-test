@@ -1,6 +1,8 @@
 const Process = require('../../models/Process');
 const TryRecord = require('../../models/TryRecord');
+const { Op } = require("sequelize");
 const ProcessAllTestsCommand = require('../commands/process-all-tests-command');
+const {isNotTotalRows, getTotalRows} = require('./try-record-handler');
 function formatDate(date) {
     var hours = date.getHours();
     var minutes = date.getMinutes();
@@ -10,15 +12,37 @@ function formatDate(date) {
     var strTime = hours + ':' + minutes + ':' + sec;
     return (date.getMonth()+1) + "." + date.getDate() + "." + date.getFullYear() + "  " + strTime;
 }
+
+const getSuccessTests = async (startId, fullCount) => {
+    const records = await TryRecord.findAll({
+        order: [['id', 'ASC']],
+        limit: fullCount > 10000 ? 10000 : fullCount,
+        where: {
+            id: {[Op.gte]: startId}
+        }
+    });
+    return records.reduce((sum, record) => {
+        if (!isNotTotalRows(record.total, record.rows)) {
+            return sum + 1;
+        }
+        return sum;
+    }, 0);
+};
+
 module.exports = {
     index: async (req, res) => {
         const process = await Process.findOne({order: [['createdAt', 'DESC']]});
         const firstRecord = await TryRecord.findOne({ order: [['id', 'ASC']]});
         const fullCount = await TryRecord.count();
+        let successTestsCount = null;
+        if (process) {
+            successTestsCount = await getSuccessTests(process.startId, process.fullCount);
+        }
         res.render('process-all-tests/index.ejs', {
             process,
             fullCount,
             formatDate,
+            successTestsCount,
             startId: firstRecord ? firstRecord.id : 0
         });
     },
@@ -29,6 +53,7 @@ module.exports = {
             createdAt: new Date(),
             startId: params.startId,
             processedCount: 0,
+            successTestsCount,
             fullCount: params.fullCount,
             finishedAt: null
         });
