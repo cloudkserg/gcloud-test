@@ -41,7 +41,7 @@ module.exports = {
         }
 
         let prevSuccessTestsCount = null;
-        if (process) {
+        if (prevProcess) {
             prevSuccessTestsCount = await getSuccessTests(prevProcess.startId, prevProcess.fullCount);
         }
         res.render('process-all-tests/index.ejs', {
