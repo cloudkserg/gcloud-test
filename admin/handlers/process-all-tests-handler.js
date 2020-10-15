@@ -61,7 +61,6 @@ module.exports = {
             createdAt: new Date(),
             startId: params.startId,
             processedCount: 0,
-            successTestsCount,
             fullCount: params.fullCount,
             finishedAt: null
         });
