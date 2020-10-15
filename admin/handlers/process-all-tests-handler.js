@@ -32,17 +32,25 @@ const getSuccessTests = async (startId, fullCount) => {
 module.exports = {
     index: async (req, res) => {
         const process = await Process.findOne({order: [['createdAt', 'DESC']]});
+        const prevProcess = await Process.findOne({offset: 1, order: [['createdAt', 'DESC']]});
         const firstRecord = await TryRecord.findOne({ order: [['id', 'ASC']]});
         const fullCount = await TryRecord.count();
         let successTestsCount = null;
         if (process) {
             successTestsCount = await getSuccessTests(process.startId, process.fullCount);
         }
+
+        let prevSuccessTestsCount = null;
+        if (process) {
+            prevSuccessTestsCount = await getSuccessTests(prevProcess.startId, prevProcess.fullCount);
+        }
         res.render('process-all-tests/index.ejs', {
             process,
+            prevProcess,
             fullCount,
             formatDate,
             successTestsCount,
+            prevSuccessTestsCount,
             startId: firstRecord ? firstRecord.id : 0
         });
     },

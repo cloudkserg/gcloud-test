@@ -1,30 +1,60 @@
 <% layout('/layout/index') -%>
-<div class="row">
-    <h2>Process all tests</h2>
+<div class="justify-content-center">
+    <div class="row justify-content-center">
+        <h2>Process all tests</h2>
+    </div>
+    <div class="row justify-content-center">
+        <form method="POST" action="/admin/process-all-tests">
+            <input name="startId" value="<%= startId %>" />
+            <input name="fullCount" value="<%= fullCount %>" />
+            <input type="submit" value="StartProcess" class="btn btn-success" />
+        </form>
+    </div>
 </div>
+
+<hr />
 <% if (process) { %>
+    <h3>Current/Last process</h3>
     <div class="row">
         <label>Process started: <%= formatDate(process.createdAt) %></label>
     </div>
     <% if (process.finishedAt) { %>
-    <div class="row">
-        <label>Process finished: <%= formatDate(process.finishedAt) %></label>
-    </div>
+        <div class="row">
+            <label>Process finished: <%= formatDate(process.finishedAt) %></label>
+        </div>
     <% } %>
     <div class="row">
         <label>Success tests: <%= successTestsCount %>/<%= process.fullCount %> records</label>
     </div>
     <div class="row">
-        <label>Count tests: <%= process.processedCount %>/<%= process.fullCount %> records</label>
+        <label>Processing tests: <%= process.processedCount %>/<%= process.fullCount %> records</label>
     </div>
     <div class="row">
         <label> Start from <%= process.startId %> record</label>
     </div>
 <% } %>
-<div class="row">
-    <form method="POST" action="/admin/process-all-tests">
-        <input name="startId" value="<%= startId %>" />
-        <input name="fullCount" value="<%= fullCount %>" />
-        <input type="submit" value="StartProcess" class="btn btn-success" />
-    </form>
-</div>
+
+<hr />
+<% if (prevProcess) { %>
+    <h3>Prev process</h3>
+    <div class="row">
+        <label>Process started: <%= formatDate(prevProcess.createdAt) %></label>
+    </div>
+    <% if (prevProcess.finishedAt) { %>
+        <div class="row">
+            <label>Process finished: <%= formatDate(prevProcess.finishedAt) %></label>
+        </div>
+    <% } %>
+    <div class="row">
+        <label>Success tests: <%= prevSuccessTestsCount %>/<%= prevProcess.fullCount %> records</label>
+    </div>
+    <div class="row">
+        <label>Processing tests: <%= prevProcess.processedCount %>/<%= prevProcess.fullCount %> records</label>
+    </div>
+    <div class="row">
+        <label> Start from <%= prevProcess.startId %> record</label>
+    </div>
+<% } %>
+
+
+
