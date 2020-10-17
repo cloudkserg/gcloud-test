@@ -1027,6 +1027,18 @@ module.exports =  class TextProcessor {
             return true;
         }
 
+        const re2 = new RegExp('.*BASE IMPONIBLE.*')
+        const result2 = re2.test(line);
+        if (result2) {
+            return true;
+        }
+
+        const re3 = new RegExp('.*IMPOST 10%.*')
+        const result3 = re3.test(line);
+        if (result3) {
+            return true;
+        }
+
         return false;
     }
 
