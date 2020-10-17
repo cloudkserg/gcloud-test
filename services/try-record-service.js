@@ -8,6 +8,9 @@ const path = require('path');
 const getDateFilter = async (processId) => {
   const processService = new ProcessService();
   const process = await processService.getItem(processId);
+  if (!process) {
+      return [new Date(), new Date()];
+  }
   return [process.createdAt, process.finishedAt];
 };
 
@@ -30,7 +33,7 @@ const applyDateFilter = async (dates) => {
   return {
       [Op.and]: [
           {createdAt: {[Op.gte]: dates[0]}},
-          {createdAt: {[Op.lte]: dates[1]||Date.now() }}
+          {createdAt: {[Op.lte]: dates[1]||new Date() }}
       ]
   }
 };
