@@ -7,7 +7,8 @@ module.exports = class ProcessService {
         return Process.findAll({
             where: {
                 finishedAt: {[Op.not]: null},
-            }
+            },
+            order: [['id', 'DESC']]
         });
     }
 
