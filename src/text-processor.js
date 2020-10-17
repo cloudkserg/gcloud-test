@@ -518,6 +518,26 @@ module.exports =  class TextProcessor {
         return null;;
     }
 
+    getPrevY(y) {
+        let keys = Object.keys(this.lineSymbols);
+        let nextIndex = parseInt(keys.indexOf(y.toString())) - 1;
+        if (!keys[nextIndex]) {
+            return null;
+        }
+        return keys[nextIndex];
+    }
+
+
+    getPrevLine(y) {
+        if (!y) {
+            return null;
+        }
+        const yKey = this.getPrevY(y.toString());
+        if (this.lineSymbols[yKey]) {
+            return this.lineSymbols[yKey];
+        }
+        return null;;
+    }
 
 
 
@@ -718,7 +738,7 @@ module.exports =  class TextProcessor {
         return newLine;
     }
 
-    joinCurrentRowWithNext (y) {
+    getPrevY (y) {
         const line = this.lineSymbols[y];
         const yIndexes = Object.keys(this.lineSymbols);
         const yIndex = yIndexes.indexOf(y.toString());
@@ -993,6 +1013,23 @@ module.exports =  class TextProcessor {
         return re.test(priceString);
     }
 
+    isTaxString(line, y) {
+        const prevLine = this.getPrevLine(y);
+        const re = new RegExp('.*%IVA.*IVA.*')
+        const result = re.test(prevLine);
+        if (result) {
+            return true;
+        }
+
+        const re1 = new RegExp('.*BASE.*IMP.*')
+        const result1 = re1.test(prevLine);
+        if (result1) {
+            return true;
+        }
+
+        return false;
+    }
+
     getItems (pricePosition, countPosition, startY, endY, totalPrice) {
         const items = [];
         pricePosition = parseInt(pricePosition);
@@ -1010,7 +1047,9 @@ module.exports =  class TextProcessor {
             if (this.hasStopWord(line)) {
                 continue;
             }
-            //
+
+
+                //
             // if (y  == '833') {
             //     const a = 'g';
             // }
@@ -1024,6 +1063,9 @@ module.exports =  class TextProcessor {
             if (!price || this.isDate(price)) {
                 // если разница между текущей строчкой и предудущей строкой = 1 - соединяем их
                 // this.joinCurrentRowWithNext(y);
+                continue;
+            }
+            if (this.isTaxString(line, y)) {
                 continue;
             }
             if (price == totalPrice) {

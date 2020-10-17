@@ -10,7 +10,7 @@ function formatDate(date) {
     minutes = minutes < 10 ? '0'+minutes : minutes;
     sec = sec < 10 ? '0'+sec : sec;
     var strTime = hours + ':' + minutes + ':' + sec;
-    return (date.getMonth()+1) + "." + date.getDate() + "." + date.getFullYear() + "  " + strTime;
+    return date.getDate()  + "." + (date.getMonth()+1) + "." + date.getFullYear() + "  " + strTime;
 }
 
 const getSuccessTests = async (startId, fullCount) => {
