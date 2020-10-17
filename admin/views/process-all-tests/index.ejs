@@ -30,7 +30,7 @@
         <label>Success tests: <%= process.successCount %>/<%= process.fullCount %> records</label>
     </div>
     <div class="row">
-        <label>Processing tests: <%= process.processedCount %>/<%= process.fullCount %> records</label>
+        <label>Processing ids: <%= process.processedCount %>/<%= process.finishId %> records</label>
     </div>
     <div class="row">
         <label> Start from <%= process.startId %> record</label>
@@ -55,7 +55,7 @@
         <label>Success tests: <%= prevProcess.successCount %>/<%= prevProcess.fullCount %> records</label>
     </div>
     <div class="row">
-        <label>Processing tests: <%= prevProcess.processedCount %>/<%= prevProcess.fullCount %> records</label>
+        <label>Processing ids: <%= prevProcess.processedCount %>/<%= prevProcess.finishId %> records</label>
     </div>
     <div class="row">
         <label> Start from <%= prevProcess.startId %> record</label>

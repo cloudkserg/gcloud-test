@@ -29,11 +29,13 @@ module.exports = {
         const firstRecord = await TryRecord.findOne({ order: [['id', 'ASC']]});
         const fullCount = await TryRecord.count();
         if (process) {
+            process.finishId = process.fullCount;
             process.fullCount = await TryRecordService.countForProcess(process.id);
             process.successCount = await getSuccessTests(process.id);
         }
 
         if (prevProcess) {
+            prevProcess.finishId = prevProcess.fullCount;
             prevProcess.fullCount = await TryRecordService.countForProcess(prevProcess.id);
             prevProcess.successCount = await getSuccessTests(prevProcess.id);
         }
