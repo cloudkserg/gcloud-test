@@ -130,10 +130,10 @@ module.exports = class LineProcessor {
             return nextEndY;
         }
 
-        const prevEndY = this.findPrevYThatClosedToThisStartY(startY, endY);
-        if (prevEndY) {
-            return prevEndY;
-        }
+        // const prevEndY = this.findPrevYThatClosedToThisStartY(startY, endY);
+        // if (prevEndY) {
+        //     return prevEndY;
+        // }
 
         const existedYWithMinDiff = this.findExistedYWithMinDiff(endY, endY - startY);
         if (existedYWithMinDiff) {
