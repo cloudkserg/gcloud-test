@@ -738,18 +738,18 @@ module.exports =  class TextProcessor {
         return newLine;
     }
 
-    getPrevY (y) {
-        const line = this.lineSymbols[y];
-        const yIndexes = Object.keys(this.lineSymbols);
-        const yIndex = yIndexes.indexOf(y.toString());
-        if (yIndex < yIndexes.length - 1) {
-            const nextY = yIndexes[yIndex+1];
-            const nextLine = this.lineSymbols[nextY];
-            const minNextX = _.min(Object.keys(nextLine));
-            const newPrevLine = this.minimizeXTo(line, minNextX);
-            this.lineSymbols[nextY] = {...newPrevLine, ...this.lineSymbols[nextY]};
-        }
-    }
+    // getPrevY (y) {
+    //     const line = this.lineSymbols[y];
+    //     const yIndexes = Object.keys(this.lineSymbols);
+    //     const yIndex = yIndexes.indexOf(y.toString());
+    //     if (yIndex < yIndexes.length - 1) {
+    //         const nextY = yIndexes[yIndex+1];
+    //         const nextLine = this.lineSymbols[nextY];
+    //         const minNextX = _.min(Object.keys(nextLine));
+    //         const newPrevLine = this.minimizeXTo(line, minNextX);
+    //         this.lineSymbols[nextY] = {...newPrevLine, ...this.lineSymbols[nextY]};
+    //     }
+    // }
 
     moreThanTotalY (y) {
         return this.totalY && parseInt(y) >= parseInt(this.totalY)
@@ -1014,7 +1014,8 @@ module.exports =  class TextProcessor {
     }
 
     isTaxString(line, y) {
-        const prevLine = this.getPrevLine(y);
+        const prevY = this.getPrevY(y);
+        const prevLine = this.lines[prevY];
         const re = new RegExp('.*%IVA.*IVA.*')
         const result = re.test(prevLine);
         if (result) {
@@ -1027,13 +1028,14 @@ module.exports =  class TextProcessor {
             return true;
         }
 
-        const re2 = new RegExp('.*BASE IMPONIBLE.*')
+        line = this.lines[y];
+        const re2 = new RegExp('.*BASE.*IMPONIBLE.*')
         const result2 = re2.test(line);
         if (result2) {
             return true;
         }
 
-        const re3 = new RegExp('.*IMPOST 10%.*')
+        const re3 = new RegExp('.*IMPOST.*10%.*')
         const result3 = re3.test(line);
         if (result3) {
             return true;
