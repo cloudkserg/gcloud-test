@@ -13,14 +13,8 @@ function formatDate(date) {
     return date.getDate()  + "." + (date.getMonth()+1) + "." + date.getFullYear() + "  " + strTime;
 }
 
-const getSuccessTests = async (startId, fullCount) => {
-    const records = await TryRecord.findAll({
-        order: [['id', 'ASC']],
-        limit: fullCount > 10000 ? 10000 : fullCount,
-        where: {
-            id: {[Op.gte]: startId}
-        }
-    });
+const getSuccessTests = async (processId) => {
+    const  records = await (new TryRecordService).getRowsForPage({processId}, 0, 100000);
     return records.reduce((sum, record) => {
         if (!TryRecordService.isNotTotalRows(record.total, record.rows)) {
             return sum + 1;
@@ -37,7 +31,7 @@ module.exports = {
         const fullCount = await TryRecord.count();
         let successTestsCount = null;
         if (process) {
-            successTestsCount = await getSuccessTests(process.startId, process.fullCount);
+            successTestsCount = await getSuccessTests(process.id);
         }
 
         let prevSuccessTestsCount = null;

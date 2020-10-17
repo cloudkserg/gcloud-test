@@ -30,7 +30,7 @@ const applyDateFilter = async (dates) => {
   return {
       [Op.and]: [
           {createdAt: {[Op.gte]: dates[0]}},
-          {finishedAt: {[Op.lte]: dates[1]||Date.now() }}
+          {createdAt: {[Op.lte]: dates[1]||Date.now() }}
       ]
   }
 };
