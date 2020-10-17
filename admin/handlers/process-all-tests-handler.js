@@ -1,8 +1,8 @@
 const Process = require('../../models/Process');
 const TryRecord = require('../../models/TryRecord');
+const TryRecordService = require('../../services/try-record-service');
 const { Op } = require("sequelize");
 const ProcessAllTestsCommand = require('../commands/process-all-tests-command');
-const {isNotTotalRows, getTotalRows} = require('./try-record-handler');
 function formatDate(date) {
     var hours = date.getHours();
     var minutes = date.getMinutes();
@@ -22,7 +22,7 @@ const getSuccessTests = async (startId, fullCount) => {
         }
     });
     return records.reduce((sum, record) => {
-        if (!isNotTotalRows(record.total, record.rows)) {
+        if (!TryRecordService.isNotTotalRows(record.total, record.rows)) {
             return sum + 1;
         }
         return sum;

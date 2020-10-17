@@ -1,7 +1,7 @@
 const TextProcessor = require("./text-processor"),
     LineProcessor = require('./line-processor'),
     process = require('process'),
-    TryRecordService = require('./try-record-service');
+    TryRecordService = require('../services/try-record-service');
 
 const fs = require('fs'),
     util = require('util'),

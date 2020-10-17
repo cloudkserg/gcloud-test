@@ -2,7 +2,7 @@ const TryRecord = require('../../models/TryRecord');
 const { Op } = require("sequelize");
 const fs = require('fs');
 const parseRecord = require('../../src/parse-record');
-const TryRecordService = require('../../src/try-record-service');
+const TryRecordService = require('../../services/try-record-service');
 
 
 

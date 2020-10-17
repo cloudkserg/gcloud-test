@@ -2,8 +2,31 @@
 <div class="row">
     <h2>Try records</h2>
 </div>
+<form method="GET">
 <div class="row">
-
+    <label>Filter by type record</label>
+    <select name="typeRecord">
+        <% for (const typeRecord of typeRecords) { %>
+            <option
+            <% if (typeRecord === selectedTypeRecord) { %> selected="selected" <% } %>
+                                                        value="<%= typeRecord %>"><%= typeRecord %></option>
+        <% } %>
+    </select>
+</div>
+<div class="row">
+    <label>Filter by Process from started Date</label>
+    <select name="processId">
+        <option value="">All</option>
+        <% for (const process of processes) { %>
+            <option
+                    <% if (process.id === selectedProcessId) { %> selected="selected" <% } %>
+                    value="<%= process.id %>"><%= formatDate(process.createdAt) %></option>
+        <% } %>
+    </select>
+</div>
+    <input type="submit" />
+</form>
+<div class="row">
     <table  class="table table-striped table-bordered">
 
         <thead>
