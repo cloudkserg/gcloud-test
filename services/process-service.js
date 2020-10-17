@@ -1,10 +1,30 @@
-
+const {Op} = require('sequelize')
 const Process = require('../models/Process')
 
 module.exports = class ProcessService {
 
     async getAllProcesses() {
-        return Process.findAll();
+        return Process.findAll({
+            where: {
+                finishedAt: {[Op.not]: null},
+            }
+        });
+    }
+
+    static  async getLastProcess() {
+        return Process.findOne({
+            order: [['id', 'DESC']]
+        });
+    }
+
+    static async getPrevLastProcess(lastProcessId) {
+        return Process.findOne({
+            where: {
+                finishedAt: {[Op.not]: null},
+                id: {[Op.lt]: lastProcessId}
+            },
+            order: [['id', 'DESC']]
+        });
     }
 
     async getItem(processId) {

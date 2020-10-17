@@ -1,5 +1,5 @@
-const Process = require('../../models/Process');
 const TryRecord = require('../../models/TryRecord');
+const ProcessService = require('../../services/process-service');
 const TryRecordService = require('../../services/try-record-service');
 const ProcessAllTestsCommand = require('../commands/process-all-tests-command');
 function formatDate(date) {
@@ -24,8 +24,8 @@ const getSuccessTests = async (processId) => {
 
 module.exports = {
     index: async (req, res) => {
-        const process = await Process.findOne({order: [['createdAt', 'DESC']]});
-        const prevProcess = await Process.findOne({offset: 1, order: [['createdAt', 'DESC']]});
+        const process = await ProcessService.getLastProcess();
+        const prevProcess = await ProcessService.getPrevLastProcess(process.id);
         const firstRecord = await TryRecord.findOne({ order: [['id', 'ASC']]});
         const fullCount = await TryRecord.count();
         if (process) {

@@ -20,7 +20,9 @@
         <% for (const process of processes) { %>
             <option
                     <% if (process.id == selectedProcessId) { %> selected="selected" <% } %>
-                    value="<%= process.id %>"><%= formatDate(process.createdAt) %></option>
+                    value="<%= process.id %>">
+                        <%= formatDate(process.createdAt) %> - <%= formatDate(process.finishedAt) %>
+            </option>
         <% } %>
     </select>
 </div>
