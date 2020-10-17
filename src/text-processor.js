@@ -697,9 +697,32 @@ module.exports =  class TextProcessor {
         return false;
     }
 
+    hasTotalWithTaxes(obj) {
+        return Object.keys(obj).find(y => this.filterTotalWithTaxes(y)) !== undefined;
+    }
+
+    filterTotalWithTaxes(y) {
+        const line = this.lines[y];
+        const re = new RegExp('.*Impuestos.*Incl.*')
+        const result = re.test(line);
+        if (result) {
+            return true;
+        }
+        return false;
+    }
+
     getEndItem(obj) {
         if (Object.values(obj).length == 0) {
             return null;
+        }
+        if (this.hasTotalWithTaxes(obj)) {
+            return  _.chain(obj)
+                .toPairs()
+                .filter(row => this.filterTotalWithTaxes(row[0]))
+                .fromPairs()
+                .values()
+                .splice(-1)
+                .value()[0];
         }
         return _.chain(obj)
             .values()
@@ -1018,6 +1041,23 @@ module.exports =  class TextProcessor {
         return re.test(priceString);
     }
 
+    isTotalString(line, y) {
+        line = this.lines[y];
+        const re2 = new RegExp('.*Base.*[0-9]+.*Cuota.*[0-9]+.*')
+        const result2 = re2.test(line);
+        if (result2) {
+            return true;
+        }
+
+        const re3 = new RegExp('.*Total.*[0-9]+.*Total.*[0-9]+.*')
+        const result3 = re3.test(line);
+        if (result3) {
+            return true;
+        }
+
+        return false;
+    }
+
     isTaxString(line, y) {
         const prevY = this.getPrevY(y);
         const prevLine = this.lines[prevY];
@@ -1085,6 +1125,9 @@ module.exports =  class TextProcessor {
                 continue;
             }
             if (this.isTaxString(line, y)) {
+                continue;
+            }
+            if (this.isTotalString(line, y)) {
                 continue;
             }
             if (price == totalPrice) {
