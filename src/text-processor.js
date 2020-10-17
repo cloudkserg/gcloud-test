@@ -277,9 +277,6 @@ module.exports =  class TextProcessor {
 
             currentX = this.getNextX(line, currentX);
         }
-        if (y  == '870') {
-            const a = 'g';
-        }
         if (!this.isPrice(price)) {
             return NaN;
         }
@@ -322,6 +319,10 @@ module.exports =  class TextProcessor {
             const isPoint = curChar === '.' || curChar === ',';
             const isSpace = curChar === ' ';
             const isChar = !isDigit && !isPoint && !isSpace;
+            if (this.hasPointInEnd(currentPrice) && this.isVeryBigToPreviousSymbol(line, x, y)) {
+                pricePositions.push(currentNumberPosition);
+                currentNumberPosition = null;
+            }
             if (!this.isCLosedToPreviousSymbol(line, x, y) && this.isPrice(currentPrice)) {
                 pricePositions.push(currentNumberPosition);
                 currentNumberPosition = null;
@@ -472,6 +473,19 @@ module.exports =  class TextProcessor {
             return false;
         }
         return parseInt(endCurrentX) - parseInt(prevX) <= this.getMaxDiffForY(y, x);
+    }
+
+    isVeryBigToPreviousSymbol (line, x, y) {
+        if (!y) {
+            throw new Error('not defined y');
+        }
+        const nextX = this.getPrevX(line, x);
+        const nextChar = line[nextX];
+        const endCurrentX = parseInt(x) + parseInt(this.widths[y][x]);
+        if (!nextX || nextChar == ' ') {
+            return false;
+        }
+        return parseInt(endCurrentX) - parseInt(nextX)  > 500;
     }
 
     getNextX(line, x) {
@@ -1055,6 +1069,12 @@ module.exports =  class TextProcessor {
             return true;
         }
 
+        const re4 = new RegExp('.*Total.*neto:.*')
+        const result4 = re4.test(line);
+        if (result4) {
+            return true;
+        }
+
         return false;
     }
 
@@ -1073,7 +1093,17 @@ module.exports =  class TextProcessor {
             return true;
         }
 
+
+
+
         line = this.lines[y];
+
+        const rex = new RegExp('.*IVA.*[0-9]+%.*[0-9]+.*')
+        const resultx = rex.test(line);
+        if (resultx) {
+            return true;
+        }
+
         const re2 = new RegExp('.*BASE.*IMPONIBLE.*')
         const result2 = re2.test(line);
         if (result2) {
