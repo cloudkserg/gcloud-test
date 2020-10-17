@@ -909,6 +909,11 @@ module.exports =  class TextProcessor {
             if (!maxPriceCalculation) {
                 return priceCalculation;
             }
+            const newItems = Math.abs(priceCalculation.priceItems);
+            const currentItems = Math.abs(maxPriceCalculation.priceItems);
+            if (newItems > currentItems ) {
+                return priceCalculation;
+            }
             const newDiff = Math.abs(totalPrice - priceCalculation.price);
             const currentDiff = Math.abs(totalPrice - maxPriceCalculation.price);
             if (newDiff < currentDiff ) {
