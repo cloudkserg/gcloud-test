@@ -33,7 +33,7 @@ const applyDateFilter = async (dates) => {
   return {
       [Op.and]: [
           {createdAt: {[Op.gte]: dates[0]}},
-          {createdAt: {[Op.lte]: dates[1]||new Date() }}
+          {createdAt: {[Op.lte]: dates[1]||dates[0] }}
       ]
   }
 };
@@ -77,6 +77,17 @@ module.exports = class TryRecordService {
 
     static getTotalRows(rows) {
         return getTotalRows(rows);
+    }
+
+    static async countForProcess(processId) {
+        const whereConditions = [];
+        const dateFilter = await getDateFilter(processId);
+        whereConditions.push(await applyDateFilter(dateFilter));
+        return TryRecord.count({
+            where: {
+                [Op.and]: whereConditions
+            }
+        });
     }
 
     async getRowsForPage(filter, currentPage, PAGE_SIZE) {

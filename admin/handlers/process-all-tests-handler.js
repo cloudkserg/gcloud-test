@@ -1,7 +1,6 @@
 const Process = require('../../models/Process');
 const TryRecord = require('../../models/TryRecord');
 const TryRecordService = require('../../services/try-record-service');
-const { Op } = require("sequelize");
 const ProcessAllTestsCommand = require('../commands/process-all-tests-command');
 function formatDate(date) {
     var hours = date.getHours();
@@ -29,22 +28,20 @@ module.exports = {
         const prevProcess = await Process.findOne({offset: 1, order: [['createdAt', 'DESC']]});
         const firstRecord = await TryRecord.findOne({ order: [['id', 'ASC']]});
         const fullCount = await TryRecord.count();
-        let successTestsCount = null;
         if (process) {
-            successTestsCount = await getSuccessTests(process.id);
+            process.fullCount = await TryRecordService.countForProcess(process.id);
+            process.successCount = await getSuccessTests(process.id);
         }
 
-        let prevSuccessTestsCount = null;
         if (prevProcess) {
-            prevSuccessTestsCount = await getSuccessTests(prevProcess.startId, prevProcess.fullCount);
+            prevProcess.fullCount = await TryRecordService.countForProcess(prevProcess.id);
+            prevProcess.successCount = await getSuccessTests(prevProcess.id);
         }
         res.render('process-all-tests/index.ejs', {
             process,
             prevProcess,
-            fullCount,
             formatDate,
-            successTestsCount,
-            prevSuccessTestsCount,
+            fullCount,
             startId: firstRecord ? firstRecord.id : 0
         });
     },

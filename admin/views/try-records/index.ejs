@@ -8,7 +8,7 @@
     <select name="typeRecord">
         <% for (const typeRecord of typeRecords) { %>
             <option
-            <% if (typeRecord === selectedTypeRecord) { %> selected="selected" <% } %>
+            <% if (typeRecord == selectedTypeRecord) { %> selected="selected" <% } %>
                                                         value="<%= typeRecord %>"><%= typeRecord %></option>
         <% } %>
     </select>
@@ -19,7 +19,7 @@
         <option value="">All</option>
         <% for (const process of processes) { %>
             <option
-                    <% if (process.id === selectedProcessId) { %> selected="selected" <% } %>
+                    <% if (process.id == selectedProcessId) { %> selected="selected" <% } %>
                     value="<%= process.id %>"><%= formatDate(process.createdAt) %></option>
         <% } %>
     </select>
@@ -111,7 +111,7 @@
         <ul class="pagination justify-content-center pagination-lg">
             <% for (const page of pages) { %>
                 <li class="page-item  <% if (page === currentPage)  { %> active <% } %>">
-                    <a class="page-link" href="?page=<%- page %>">
+                    <a class="page-link" href="<%= currentUri %>&page=<%- page %>">
                         <%- +page+1 %>
                         <% if (page === currentPage)  { %>
                             <span class="sr-only">(current)</span>

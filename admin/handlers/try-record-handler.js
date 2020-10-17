@@ -35,7 +35,7 @@ const  formatDate = (date) => {
     minutes = minutes < 10 ? '0'+minutes : minutes;
     sec = sec < 10 ? '0'+sec : sec;
     var strTime = hours + ':' + minutes + ':' + sec;
-    return (date.getMonth()+1) + "." + date.getDate() + "." + date.getFullYear() + "  " + strTime;
+    return  date.getDate() + "." + (date.getMonth()+1) + "." + date.getFullYear() + "  " + strTime;
 };
 
 
@@ -47,15 +47,18 @@ module.exports = {
         const items = await new TryRecordService().getRowsForPage(filter, currentPage, PAGE_SIZE);
         const pages = await getPages();
         const processes = await (new ProcessService).getAllProcesses();
+        const currentUri = '?typeRecord=' + (filter.typeRecord || 'all') +
+            '&processId=' + (filter.processId || null);
 
         res.render('try-records/index.ejs', {
             items,
             pages,
             currentPage,
+            currentUri,
             getPublicPath: (name) => TryRecordService.getPublicPath(name),
             formatRows,
-            selectedTypeRecord: req.query.typeRecord || null,
-            selectedProcessId: req.query.processId || null,
+            selectedTypeRecord: filter.typeRecord || null,
+            selectedProcessId: filter.processId || null,
             typeRecords: TryRecordService.getTypeRecords(),
             processes,
             isNotTotalRows: TryRecordService.isNotTotalRows,

@@ -16,6 +16,9 @@
 <% if (process) { %>
     <h3>Current/Last process</h3>
     <div class="row">
+        <label>Process id: <%= process.id %></label>
+    </div>
+    <div class="row">
         <label>Process started: <%= formatDate(process.createdAt) %></label>
     </div>
     <% if (process.finishedAt) { %>
@@ -24,7 +27,7 @@
         </div>
     <% } %>
     <div class="row">
-        <label>Success tests: <%= successTestsCount %>/<%= process.fullCount %> records</label>
+        <label>Success tests: <%= process.successCount %>/<%= process.fullCount %> records</label>
     </div>
     <div class="row">
         <label>Processing tests: <%= process.processedCount %>/<%= process.fullCount %> records</label>
@@ -38,6 +41,9 @@
 <% if (prevProcess) { %>
     <h3>Prev process</h3>
     <div class="row">
+        <label>Process id: <%= prevProcess.id %></label>
+    </div>
+    <div class="row">
         <label>Process started: <%= formatDate(prevProcess.createdAt) %></label>
     </div>
     <% if (prevProcess.finishedAt) { %>
@@ -46,7 +52,7 @@
         </div>
     <% } %>
     <div class="row">
-        <label>Success tests: <%= prevSuccessTestsCount %>/<%= prevProcess.fullCount %> records</label>
+        <label>Success tests: <%= prevProcess.successCount %>/<%= prevProcess.fullCount %> records</label>
     </div>
     <div class="row">
         <label>Processing tests: <%= prevProcess.processedCount %>/<%= prevProcess.fullCount %> records</label>
