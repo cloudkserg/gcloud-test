@@ -11,6 +11,16 @@ module.exports = class ProcessService {
         });
     }
 
+    static async create(params) {
+        return Process.create({
+            createdAt: new Date(),
+            startId: params.startId,
+            processedCount: 0,
+            fullCount: params.fullCount,
+            finishedAt: null
+        });
+    }
+
     static  async getLastProcess() {
         return Process.findOne({
             order: [['id', 'DESC']]

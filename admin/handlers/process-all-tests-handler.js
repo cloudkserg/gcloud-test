@@ -48,13 +48,7 @@ module.exports = {
 
     create: async (req, res) => {
         const params = req.body;
-        const process = await Process.create({
-            createdAt: new Date(),
-            startId: params.startId,
-            processedCount: 0,
-            fullCount: params.fullCount,
-            finishedAt: null
-        });
+        const process = await ProcessService.create(params);
 
 
         const processCommand = new ProcessAllTestsCommand(process);
