@@ -51,7 +51,12 @@ module.exports = async (file) => {
         console.error(err);
         return;
     }
+    const tryRecordService = new TryRecordService();
+    const time = new Date() - timeStart;
+    const record = await tryRecordService.addRecord(file, text.totalPrice, text.items, resultJson, time, googleTime);
     const result = {
+        id: record.id, 
+	url: TryRecordService.getPublicPath(record.file),
         path: image, rows: text.items, totalPrice: text.totalPrice,
         priceCalculations: textProcessor.priceCalculations,
         lines,
@@ -60,8 +65,5 @@ module.exports = async (file) => {
         transformations: lineProcessor.transformations,
         superDebug: lineProcessor.debug
     };
-    const tryRecordService = new TryRecordService();
-    const time = new Date() - timeStart;
-    await tryRecordService.addRecord(file, text.totalPrice, text.items, resultJson, time, googleTime);
     return result;
 };

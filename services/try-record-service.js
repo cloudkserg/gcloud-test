@@ -111,7 +111,7 @@ module.exports = class TryRecordService {
 
     async addRecord(filepath, total, rows, googleJson, speed, google_speed) {
         const file = this.copyImage(filepath);
-        await TryRecord.create({
+        const item = await TryRecord.create({
             file,
             total,
             speed,
@@ -120,6 +120,7 @@ module.exports = class TryRecordService {
             rows: JSON.stringify(rows),
             json: JSON.stringify(googleJson)
         });
+return item;
     }
 
     static getFilePath(file) {
